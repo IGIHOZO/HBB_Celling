@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - EXML to XML Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #495057;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .section h3 {
+            color: #667eea;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            margin-top: 25px;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .endpoint h4 {
+            color: #28a745;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .method.get {
+            background: #007bff;
+            color: white;
+        }
+
+        .method.post {
+            background: #28a745;
+            color: white;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .response-example {
+            background: #e8f5e8;
+            border: 1px solid #c3e6c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .response-example h5 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .error-example {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .error-example h5 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+
+        .exml-format {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .exml-format h4 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .note {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .note h5 {
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 API Documentation</h1>
+            <p>EXML to XML Converter REST API</p>
+        </header>
+
+        <main>
+            <a href="/" class="back-btn">
+                <span>←</span> Back to Converter
+            </a>
+
+            <div class="section">
+                <h2>Overview</h2>
+                <p>The EXML to XML Converter provides a REST API for converting Erlang XML format (EXML) to standard XML. The API accepts EXML strings and returns properly formatted XML.</p>
+            </div>
+
+            <div class="section">
+                <h2>EXML Format</h2>
+                <div class="exml-format">
+                    <h4>EXML Structure:</h4>
+                    <div class="code-block">
+{element, "tagname", [{attribute, "name", "value"}], [children...]}
+                    </div>
+                    <ul style="margin-top: 15px; padding-left: 20px;">
+                        <li><strong>Elements:</strong> {element, "tagname", attributes, children}</li>
+                        <li><strong>Attributes:</strong> {attribute, "name", "value"}</li>
+                        <li><strong>Text content:</strong> "text string"</li>
+                        <li><strong>Children:</strong> List of elements or text strings</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>API Endpoints</h2>
+
+                <div class="endpoint">
+                    <h4><span class="method post">POST</span> /convert/</h4>
+                    <p>Convert EXML to XML</p>
+                    
+                    <h5>Request Body:</h5>
+                    <div class="code-block">
+{
+    "exml": "{element, \"root\", [], []}"
+}
+                    </div>
+
+                    <h5>Response (Success):</h5>
+                    <div class="response-example">
+                        <div class="code-block">
+{
+    "success": true,
+    "xml": "<root />\\n",
+    "exml": "{element, \"root\", [], []}"
+}
+                        </div>
+                    </div>
+
+                    <h5>Response (Error):</h5>
+                    <div class="error-example">
+                        <div class="code-block">
+{
+    "success": false,
+    "error": "Conversion failed: Invalid EXML format"
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <h4><span class="method get">GET</span> /examples/</h4>
+                    <p>Get example EXML inputs</p>
+                    
+                    <h5>Response:</h5>
+                    <div class="response-example">
+                        <div class="code-block">
+{
+    "success": true,
+    "examples": [
+        {
+            "name": "Simple Element",
+            "exml": "{element, \"root\", [], []}"
+        },
+        {
+            "name": "Element with Attributes",
+            "exml": "{element, \"person\", [{attribute, \"id\", \"123\"}], []}"
+        }
+    ]
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Usage Examples</h2>
+                
+                <h3>JavaScript/Fetch</h3>
+                <div class="code-block">
+const response = await fetch('/convert/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+        exml: '{element, "person", [{attribute, "name", "John"}], []}'
+    })
+});
+
+const data = await response.json();
+console.log(data.xml);
+                </div>
+
+                <h3>Python/Requests</h3>
+                <div class="code-block">
+import requests
+
+response = requests.post('http://localhost:8000/convert/', 
+    json={
+        'exml': '{element, "person", [{attribute, "name", "John"}], []}'
+    }
+)
+
+data = response.json()
+print(data['xml'])
+                </div>
+
+                <h3>curl</h3>
+                <div class="code-block">
+curl -X POST http://localhost:8000/convert/ \
+    -H "Content-Type: application/json" \
+    -d '{"exml": "{element, \"person\", [{attribute, \"name\", \"John\"}], []}"}'
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Error Codes</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Error</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Empty input</td>
+                            <td>EXML input cannot be empty</td>
+                            <td>"EXML input cannot be empty"</td>
+                        </tr>
+                        <tr>
+                            <td>Invalid JSON</td>
+                            <td>Request body is not valid JSON</td>
+                            <td>"Invalid JSON data"</td>
+                        </tr>
+                        <tr>
+                            <td>Invalid EXML</td>
+                            <td>EXML format is malformed</td>
+                            <td>"Conversion failed: Unsupported EXML format"</td>
+                        </tr>
+                        <tr>
+                            <td>Parse error</td>
+                            <td>Error parsing EXML structure</td>
+                            <td>"Conversion failed: Invalid tag format"</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>Response Format</h2>
+                
+                <h3>Success Response</h3>
+                <div class="code-block">
+{
+    "success": true,
+    "xml": "formatted_xml_output",
+    "exml": "original_exml_input"
+}
+                </div>
+
+                <h3>Error Response</h3>
+                <div class="code-block">
+{
+    "success": false,
+    "error": "error_message"
+}
+                </div>
+            </div>
+
+            <div class="note">
+                <h5>📝 Note</h5>
+                <p>The API expects EXML strings in Erlang tuple format. Make sure to properly escape quotes when sending JSON requests. The XML output is formatted with proper indentation for readability.</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

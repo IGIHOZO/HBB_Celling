@@ -1,0 +1,16 @@
+# Example EXML inputs for testing
+
+# Simple empty element
+{element, "root", [], []}
+
+# Element with attributes
+{element, "person", [{attribute, "id", "123"}, {attribute, "name", "John Doe"}, {attribute, "age", "30"}], []}
+
+# Element with text content
+{element, "message", [], ["Hello, World!"]}
+
+# Element with children
+{element, "book", [{attribute, "title", "Python Programming"}, {attribute, "year", "2023"}], [{element, "author", [], [{element, "name", [], ["John Smith"]}, {element, "email", [], ["john@example.com"]}]}, {element, "publisher", [], ["Tech Books Publishing"]}, {element, "chapters", [{attribute, "count", "12"}], []}]}
+
+# Complex nested structure
+{element, "html", [{attribute, "lang", "en"}], [{element, "head", [], [{element, "title", [], ["My Web Page"]}, {element, "meta", [{attribute, "charset", "UTF-8"}], []}]}, {element, "body", [], [{element, "header", [], [{element, "h1", [], ["Welcome"]}]}, {element, "main", [], [{element, "section", [{attribute, "class", "content"}], [{element, "p", [], ["This is a paragraph of text."]}, {element, "ul", [], [{element, "li", [], ["First item"]}, {element, "li", [], ["Second item"]}, {element, "li", [], ["Third item"]}]}]}]}, {element, "footer", [], [{element, "p", [], ["© 2023 My Website"]}]}]}]}

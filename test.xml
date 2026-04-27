@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<subscriberRecord>
+  <subscriber>
+    <field name="MSISDN">071032054</field>
+    <field name="IMSI">635176501033515</field>
+    <field name="BillingDay">0</field>
+  </subscriber>
+</subscriberRecord>
+<subscriberRecord>
+  <subscriber>
+    <field name="MSISDN">077238255</field>
+    <field name="BillingDay">30</field>
+    <field name="Custom2">9999-12-31T23:59:59</field>
+  </subscriber>
+</subscriberRecord>
