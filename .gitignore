@@ -1,6 +1,15 @@
-db.sqlite3
+# Python
 __pycache__/
-*.pyc
-.env
+*.py[cod]
+*.log
+
+# Virtual envs
 venv/
+.env
+
+# Django
+db.sqlite3
+staticfiles/
+
+# OS
 .DS_Store
