@@ -1,11 +1,13 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 import os
+import csv
+import io
 from django.conf import settings
-from .exml_parser import EXMLToXMLConverter
+from .exml_parser import EXMLToXMLConverter, FlatSubscriberDataParser, MixedXmlFlatParser
 
 
 def index(request):
@@ -93,6 +95,145 @@ def api_documentation(request):
     API documentation page
     """
     return render(request, 'converter/api.html')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def convert_to_csv(request):
+    """
+    Convert EXML data or flat subscriber data to CSV format extracting specific properties
+    """
+    try:
+        # Get EXML data from request
+        data = json.loads(request.body)
+        exml_input = data.get('exml', '').strip()
+        
+        if not exml_input:
+            return JsonResponse({
+                'success': False,
+                'error': 'EXML input cannot be empty'
+            })
+        
+        # Check for different data formats
+        flat_parser = FlatSubscriberDataParser()
+        mixed_parser = MixedXmlFlatParser()
+        csv_data = []
+        xml_output = ""
+        
+        if mixed_parser.is_mixed_format(exml_input):
+            # Parse mixed XML/flat subscriber data
+            csv_data = mixed_parser.extract_csv_data(exml_input)
+            xml_output = "<root>Mixed XML/flat subscriber data format - converted directly to CSV</root>"
+        elif flat_parser.is_flat_format(exml_input):
+            # Parse flat subscriber data directly
+            csv_data = flat_parser.extract_csv_data(exml_input)
+            xml_output = "<root>Flat subscriber data format - converted directly to CSV</root>"
+        else:
+            # Try to convert as EXML first
+            try:
+                converter = EXMLToXMLConverter()
+                xml_output = converter.convert(exml_input)
+                
+                # Parse XML and extract CSV data
+                csv_data = extract_csv_properties(xml_output)
+            except ValueError as e:
+                if "Unsupported EXML format" in str(e):
+                    # If EXML parsing fails, try mixed format first, then flat format as fallback
+                    if mixed_parser.is_mixed_format(exml_input):
+                        csv_data = mixed_parser.extract_csv_data(exml_input)
+                        xml_output = "<root>Mixed XML/flat subscriber data format - converted directly to CSV</root>"
+                    else:
+                        csv_data = flat_parser.extract_csv_data(exml_input)
+                        xml_output = "<root>Flat subscriber data format - converted directly to CSV</root>"
+                else:
+                    raise e
+        
+        # Generate CSV content
+        csv_content = generate_csv(csv_data)
+        
+        return JsonResponse({
+            'success': True,
+            'csv': csv_content,
+            'xml': xml_output,
+            'exml': exml_input,
+            'record_count': len(csv_data)
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+def extract_csv_properties(xml_content):
+    """
+    Extract specific properties (MSISDN, Custom1, Custom2, Custom8, BillingDay, Custom3) from XML
+    """
+    import xml.etree.ElementTree as ET
+    
+    # Parse XML
+    root = ET.fromstring(xml_content)
+    
+    # Properties to extract
+    target_properties = ['MSISDN', 'Custom1', 'Custom2', 'Custom8', 'BillingDay', 'Custom3']
+    
+    csv_data = []
+    
+    # Find all subscriber records or similar elements
+    for element in root.iter():
+        # Check if this element contains any of our target properties
+        record_data = {}
+        has_target_properties = False
+        
+        # Check direct children for target properties
+        for child in element:
+            if child.tag in target_properties:
+                record_data[child.tag] = child.text or ''
+                has_target_properties = True
+        
+        # If we found target properties in this element, add to results
+        if has_target_properties:
+            # Ensure all target properties are present (even if empty)
+            for prop in target_properties:
+                if prop not in record_data:
+                    record_data[prop] = ''
+            
+            csv_data.append(record_data)
+    
+    return csv_data
+
+
+def generate_csv(csv_data):
+    """
+    Generate CSV string from extracted data
+    """
+    if not csv_data:
+        return "MSISDN,Custom1,Custom2,Custom8,BillingDay,Custom3\n"
+    
+    output = io.StringIO()
+    writer = csv.writer(output, quoting=csv.QUOTE_ALL)  # Quote all fields to handle commas properly
+    
+    # Write header
+    writer.writerow(['MSISDN', 'Custom1', 'Custom2', 'Custom8', 'BillingDay', 'Custom3'])
+    
+    # Write data rows
+    for row in csv_data:
+        writer.writerow([
+            row.get('MSISDN', ''),
+            row.get('Custom1', ''),
+            row.get('Custom2', ''),
+            row.get('Custom8', ''),
+            row.get('BillingDay', ''),
+            row.get('Custom3', '')
+        ])
+    
+    return output.getvalue()
 
 
 @csrf_exempt

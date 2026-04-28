@@ -118,6 +118,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# File upload settings
+# Increase maximum file upload size to 100MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB in bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB in bytes
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

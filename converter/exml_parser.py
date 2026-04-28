@@ -236,3 +236,236 @@ class EXMLToXMLConverter:
             result.append(f'{indent}</{element.tag}>')
         
         return '\n'.join(result)
+
+
+class FlatSubscriberDataParser:
+    """Parser for flat subscriber data format (non-EXML format)."""
+    
+    def __init__(self):
+        self.required_fields = ['MSISDN', 'Custom1', 'Custom2', 'Custom8', 'BillingDay', 'Custom3']
+    
+    def parse_subscriber_data(self, data_str: str) -> List[Dict[str, str]]:
+        """
+        Parse flat subscriber data string and extract required fields.
+        
+        Expected format: Each subscriber record on a new line with fields separated by commas
+        Fields are in order: MSISDN, Custom1, Custom2, Custom8, BillingDay, Custom3, ...
+        """
+        subscribers = []
+        lines = data_str.strip().split('\n')
+        
+        for line_num, line in enumerate(lines, 1):
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Split by comma and clean up each field
+            fields = [field.strip() for field in line.split(',')]
+            
+            if len(fields) < 6:
+                # Skip lines that don't have enough fields
+                continue
+            
+            # Extract the required fields (first 6 fields)
+            subscriber_data = {
+                'MSISDN': fields[0],
+                'Custom1': fields[1],
+                'Custom2': fields[2],
+                'Custom8': fields[3],
+                'BillingDay': fields[4],
+                'Custom3': fields[5]
+            }
+            
+            subscribers.append(subscriber_data)
+        
+        return subscribers
+    
+    def extract_csv_data(self, data_str: str) -> List[Dict[str, str]]:
+        """
+        Extract CSV data from flat subscriber format.
+        
+        Returns:
+            List of dictionaries containing the required fields for each subscriber
+        """
+        return self.parse_subscriber_data(data_str)
+    
+    def is_flat_format(self, data_str: str) -> bool:
+        """
+        Check if the data string is in flat subscriber format.
+        
+        Returns:
+            True if the data appears to be flat subscriber format
+        """
+        # Check if it doesn't start with EXML tuple format
+        data_str = data_str.strip()
+        if not data_str.startswith('{') or not data_str.startswith('element,'):
+            # Check if it contains comma-separated values that look like subscriber data
+            lines = data_str.split('\n')
+            if len(lines) > 1:
+                # Check first few lines for comma-separated numeric/string data
+                for line in lines[:5]:
+                    line = line.strip()
+                    if line and ',' in line:
+                        fields = line.split(',')
+                        if len(fields) >= 6:
+                            # Likely flat subscriber format
+                            return True
+        return False
+
+
+class MixedXmlFlatParser:
+    """Parser for mixed XML/flat subscriber data format."""
+    
+    def __init__(self):
+        self.required_fields = ['MSISDN', 'Custom1', 'Custom2', 'Custom8', 'BillingDay', 'Custom3']
+
+    def _clean_custom3_value(self, value: str) -> str:
+        """
+        Clean up Custom3 field values that may contain tab-separated or
+        space-separated numbers, and return them as a JSON integer array.
+
+        Input example : '269875\t272406\t275252\t278039'
+        Output example: '[269875, 272406, 275252, 278039]'
+
+        Non-numeric tokens are kept as strings inside the array.
+        """
+        import json
+
+        if not value:
+            return '[]'
+
+        # Split on tabs, runs of spaces (2+), or existing commas
+        tokens = re.split(r'[\t,]+| {2,}', value)
+        # Drop empty tokens and strip stray whitespace
+        tokens = [t.strip() for t in tokens if t.strip()]
+
+        # Convert to int where possible, fall back to str
+        parsed = []
+        for t in tokens:
+            try:
+                parsed.append(int(t))
+            except ValueError:
+                parsed.append(t)
+
+        return json.dumps(parsed)
+
+    def parse_mixed_data(self, data_str: str) -> List[Dict[str, str]]:
+        """
+        Parse mixed XML/flat subscriber data format.
+        
+        This format contains XML-like subscriber records mixed with comma-separated values.
+        Each line may contain:
+        - XML subscriber record with field elements
+        - Comma-separated additional values
+        """
+        subscribers = []
+        lines = data_str.strip().split('\n')
+        
+                
+        for line_num, line in enumerate(lines, 1):
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Check if this line contains XML subscriber record
+            if '<subscriberRecord>' in line or '<subscriber>' in line:
+                subscriber_data = self._parse_xml_line(line)
+                if subscriber_data:
+                    # Check if there are comma-separated values after the XML part
+                    if ',' in line and '>' in line:
+                        # Split at the first '>' after the XML part
+                        xml_end = line.rfind('>') + 1
+                        xml_part = line[:xml_end]
+                        csv_part = line[xml_end:]
+                        
+                        # Parse the CSV part for missing fields
+                        if csv_part.strip():
+                            csv_fields = [field.strip() for field in csv_part.split(',')]
+                            # Custom3 is often the first field after the XML
+                            if len(csv_fields) > 0 and not subscriber_data.get('Custom3'):
+                                custom3_value = csv_fields[0].strip('"')
+                                custom3_value = self._clean_custom3_value(custom3_value)
+                                subscriber_data['Custom3'] = custom3_value
+                    
+                    subscribers.append(subscriber_data)
+            else:
+                # Try to parse as simple comma-separated data
+                fields = [field.strip() for field in line.split(',')]
+                if len(fields) >= 6:
+                    subscriber_data = {
+                        'MSISDN': fields[0],
+                        'Custom1': fields[1],
+                        'Custom2': fields[2],
+                        'Custom8': fields[3],
+                        'BillingDay': fields[4],
+                        'Custom3': fields[5]
+                    }
+                    subscribers.append(subscriber_data)
+        
+        return subscribers
+    
+    def _parse_xml_line(self, line: str) -> Dict[str, str]:
+        """
+        Parse a line containing XML subscriber record.
+        
+        Extract field values from XML-like structure.
+        """
+        # Initialize with empty values
+        subscriber_data = {
+            'MSISDN': '',
+            'Custom1': '',
+            'Custom2': '',
+            'Custom8': '',
+            'BillingDay': '',
+            'Custom3': ''
+        }
+        
+        # Try multiple regex patterns to match different XML field formats
+        patterns = [
+            r'<field\s+name=""([^""]+)"">([^<]*)</field>',  # Double quotes around name
+            r'<field\s+name="([^"]+)">([^<]*)</field>',      # Single quotes around name
+            r'<field\s+name=([^>\s]+)>([^<]*)</field>',      # No quotes around name
+            r'<field[^>]*name=([^>\s]+)[^>]*>([^<]*)</field>' # More flexible pattern
+        ]
+        
+        matches = []
+        for pattern in patterns:
+            matches = re.findall(pattern, line)
+            if matches:
+                break
+        
+        for field_name, field_value in matches:
+            if field_name in subscriber_data:
+                cleaned_value = field_value.strip()
+                # Special cleanup for Custom3 field to handle tab-separated values
+                if field_name == 'Custom3':
+                    cleaned_value = self._clean_custom3_value(cleaned_value)
+                subscriber_data[field_name] = cleaned_value
+        
+        # Check if we got any meaningful data
+        if any(subscriber_data.values()):
+            return subscriber_data
+        else:
+            return None
+    
+    def extract_csv_data(self, data_str: str) -> List[Dict[str, str]]:
+        """
+        Extract CSV data from mixed XML/flat format.
+        
+        Returns:
+            List of dictionaries containing the required fields for each subscriber
+        """
+        return self.parse_mixed_data(data_str)
+    
+    def is_mixed_format(self, data_str: str) -> bool:
+        """
+        Check if the data string is in mixed XML/flat format.
+        
+        Returns:
+            True if the data appears to be mixed XML/flat format
+        """
+        data_str = data_str.strip()
+        # Check for XML tags mixed with comma-separated values
+        return ('<subscriberRecord>' in data_str or 
+                '<subscriber>' in data_str or 
+                '<field name=' in data_str) and ',' in data_str
