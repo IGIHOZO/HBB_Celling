@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBB Customers</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f9fc;
+            margin: 0;
+            padding: 24px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .count {
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: #2563eb;
+            font-size: 14px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .tab-btn {
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #111827;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .tab-btn.active {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .dataTables_wrapper {
+            padding: 6px 2px;
+        }
+        .status-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .status-locked {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-unlocked {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-notfound {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        .hint {
+            margin-bottom: 10px;
+            color: #4b5563;
+            font-size: 13px;
+        }
+        .warn {
+            margin-bottom: 10px;
+            background: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #fdba74;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+        .btn {
+            border: none;
+            background: #2563eb;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .suggestions-box {
+            margin-top: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f9fafb;
+            display: none;
+        }
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+            font-size: 13px;
+        }
+        .inline-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .inline-row input {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 12px;
+            min-width: 180px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>All HBB Customers</h1>
+                <div class="count">Total customers: {{ customers|length }}</div>
+                <div class="count">Loaded cells: {{ cell_towers_count }}</div>
+            </div>
+            <a class="back-link" href="/">Back to Dashboard</a>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="all">All ({{ customers|length }})</button>
+            <button class="tab-btn" data-tab="found">Found in customer_coordinates ({{ found_customers|length }})</button>
+            <button class="tab-btn" data-tab="not-found">Not Found in customer_coordinates ({{ not_found_customers|length }})</button>
+            <button class="tab-btn" data-tab="unlocked">Unlocked suggestions ({{ unlocked_customers|length }})</button>
+        </div>
+
+        <div id="panel-all" class="tab-panel active table-wrap">
+            <table id="hbb-customers-table-all">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>MSISDN</th>
+                        <th>Customer Name</th>
+                        <th>Product Name</th>
+                        <th>Price Plan Order Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in all_customers %}
+                    <tr>
+                        <td>{{ row.customer.id }}</td>
+                        <td>{{ row.customer.msisdn|default:"-" }}</td>
+                        <td>{{ row.customer.customer_name|default:"-" }}</td>
+                        <td>{{ row.customer.product_name|default:"-" }}</td>
+                        <td>{{ row.customer.price_plan_order_date|default:"-" }}</td>
+                        <td>
+                            {% if row.status == 'Locked' %}
+                                <span class="status-pill status-locked">Locked</span>
+                            {% elif row.status == 'UnLocked' %}
+                                <span class="status-pill status-unlocked">UnLocked</span>
+                            {% else %}
+                                <span class="status-pill status-notfound">{{ row.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">No customers found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="panel-found" class="tab-panel table-wrap">
+            <table id="hbb-customers-table-found">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>MSISDN</th>
+                        <th>Customer Name</th>
+                        <th>Product Name</th>
+                        <th>Price Plan Order Date</th>
+                        <th>Lock Status</th>
+                        <th>Cells</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in found_customers %}
+                    <tr>
+                        <td>{{ row.customer.id }}</td>
+                        <td>{{ row.customer.msisdn|default:"-" }}</td>
+                        <td>{{ row.customer.customer_name|default:"-" }}</td>
+                        <td>{{ row.customer.product_name|default:"-" }}</td>
+                        <td>{{ row.customer.price_plan_order_date|default:"-" }}</td>
+                        <td>
+                            {% if row.is_locked %}
+                                <span class="status-pill status-locked">Locked</span>
+                            {% else %}
+                                <span class="status-pill status-unlocked">UnLocked</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.custom3|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No customers found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="panel-not-found" class="tab-panel table-wrap">
+            <table id="hbb-customers-table-not-found">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>MSISDN</th>
+                        <th>Customer Name</th>
+                        <th>Product Name</th>
+                        <th>Price Plan Order Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in not_found_customers %}
+                    <tr>
+                        <td>{{ customer.id }}</td>
+                        <td>{{ customer.msisdn|default:"-" }}</td>
+                        <td>{{ customer.customer_name|default:"-" }}</td>
+                        <td>{{ customer.product_name|default:"-" }}</td>
+                        <td>{{ customer.price_plan_order_date|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">No customers found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="panel-unlocked" class="tab-panel table-wrap">
+            {% if not has_cell_towers_table %}
+            <div class="warn">
+                `cells_info` table not found in database. Please ensure this table exists and has `lat/lon` populated.
+            </div>
+            {% endif %}
+            <div class="hint">
+                For unlocked customers, click "Suggest nearest cells" to fetch 10 nearest cell towers from registered coordinates, then select and save.
+            </div>
+            <table id="hbb-customers-table-unlocked">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>MSISDN</th>
+                        <th>Customer Name</th>
+                        <th>Coordinates</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in unlocked_customers %}
+                    <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
+                        <td>{{ row.customer.id }}</td>
+                        <td>{{ row.customer.msisdn|default:"-" }}</td>
+                        <td>{{ row.customer.customer_name|default:"-" }}</td>
+                        <td>
+                            {% if row.has_coordinates %}
+                                {{ row.latitude }}, {{ row.longitude }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button
+                                class="btn btn-suggest"
+                                data-msisdn="{{ row.customer.msisdn|default:'' }}"
+                                {% if not row.has_coordinates or not row.customer.msisdn %}disabled{% endif %}
+                            >
+                                Suggest nearest cells
+                            </button>
+                            <div class="suggestions-box" id="suggestions-{{ row.customer.id }}"></div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">No unlocked customers found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#hbb-customers-table-all').DataTable({
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, 'asc']]
+            });
+            $('#hbb-customers-table-found').DataTable({
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, 'asc']]
+            });
+            $('#hbb-customers-table-not-found').DataTable({
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, 'asc']]
+            });
+            $('#hbb-customers-table-unlocked').DataTable({
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, 'asc']]
+            });
+
+            $('.tab-btn').on('click', function () {
+                const tab = $(this).data('tab');
+                $('.tab-btn').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-panel').removeClass('active');
+                if (tab === 'all') $('#panel-all').addClass('active');
+                if (tab === 'found') $('#panel-found').addClass('active');
+                if (tab === 'not-found') $('#panel-not-found').addClass('active');
+                if (tab === 'unlocked') $('#panel-unlocked').addClass('active');
+            });
+
+            $(document).on('click', '.btn-suggest', async function () {
+                const btn = $(this);
+                const msisdn = btn.data('msisdn');
+                const row = btn.closest('tr');
+                const box = row.find('.suggestions-box');
+
+                if (!msisdn) {
+                    alert('Missing MSISDN');
+                    return;
+                }
+
+                btn.prop('disabled', true).text('Loading...');
+                box.hide().html('');
+
+                try {
+                    const res = await fetch(`/suggest-nearest-cells/?msisdn=${encodeURIComponent(msisdn)}`);
+                    const data = await res.json();
+                    if (!data.success) {
+                        alert(data.error || 'Failed to load suggestions');
+                        return;
+                    }
+
+                    let html = '';
+                    if (!data.suggested_cells.length) {
+                        html = '<div>No nearby cells found.</div>';
+                    } else {
+                        html += `<div style="margin-bottom:8px;"><strong>${data.customer.msisdn}</strong> - select cells to save</div>`;
+                        data.suggested_cells.forEach((cell, idx) => {
+                            const label = `${cell.cell_id} | ${cell.cell_name || '-'} | ${cell.region || '-'} | (${cell.latitude}, ${cell.longitude}) | ${cell.distance_km} km`;
+                            html += `
+                                <label class="suggestion-item">
+                                    <input type="checkbox" class="cell-checkbox" value="${cell.cell_id}" ${idx < 3 ? 'checked' : ''}>
+                                    <span>${label}</span>
+                                </label>
+                            `;
+                        });
+                        html += `
+                            <div class="inline-row">
+                                <input type="text" class="manual-cell-input" placeholder="Add manual cell id (optional)">
+                                <button class="btn btn-add-manual-cell" type="button">Add manual cell</button>
+                            </div>
+                        `;
+                        html += '<button class="btn btn-save-cells" style="margin-top:8px;">Save selected cells</button>';
+                    }
+
+                    box.html(html).show();
+                } catch (err) {
+                    alert(`Error: ${err.message}`);
+                } finally {
+                    btn.prop('disabled', false).text('Suggest nearest cells');
+                }
+            });
+
+            $(document).on('click', '.btn-save-cells', async function () {
+                const box = $(this).closest('.suggestions-box');
+                const row = $(this).closest('tr');
+                const msisdn = row.data('msisdn');
+                const selected = box.find('.cell-checkbox:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (!selected.length) {
+                    alert('Select at least one cell');
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/save-customer-cells/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ msisdn: msisdn, selected_cells: selected })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        alert(data.error || 'Failed to save cells');
+                        return;
+                    }
+                    alert(`Saved ${data.saved_cells.length} cells for ${msisdn}`);
+                } catch (err) {
+                    alert(`Error: ${err.message}`);
+                }
+            });
+
+            $(document).on('click', '.btn-add-manual-cell', function () {
+                const box = $(this).closest('.suggestions-box');
+                const input = box.find('.manual-cell-input');
+                const manualCell = (input.val() || '').trim();
+                if (!manualCell) {
+                    alert('Enter a cell id first');
+                    return;
+                }
+
+                const alreadyExists = box.find('.cell-checkbox').filter(function () {
+                    return $(this).val() === manualCell;
+                }).length > 0;
+
+                if (alreadyExists) {
+                    alert('Cell already in selection list');
+                    return;
+                }
+
+                const manualHtml = `
+                    <label class="suggestion-item">
+                        <input type="checkbox" class="cell-checkbox" value="${manualCell}" checked>
+                        <span>${manualCell} | manually added</span>
+                    </label>
+                `;
+                $(manualHtml).insertBefore(box.find('.inline-row'));
+                input.val('');
+            });
+        });
+    </script>
+</body>
+</html>

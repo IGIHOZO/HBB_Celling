@@ -1,14 +1,81 @@
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import connection
+import math
 import json
-import os
 import csv
 import io
-from django.conf import settings
 from .exml_parser import EXMLToXMLConverter, FlatSubscriberDataParser, MixedXmlFlatParser
+from .models import CustomerCoordinate, HBBCustomer, CellsInfo
 
+
+def find_customer_by_lookup(customer_lookup):
+    customer = HBBCustomer.objects.filter(msisdn=customer_lookup).first()
+    if customer:
+        return customer
+    if str(customer_lookup).isdigit():
+        return HBBCustomer.objects.filter(id=int(customer_lookup)).first()
+    return None
+
+
+def find_customer_coordinates(hbb_customer):
+    return CustomerCoordinate.objects.filter(msisdn=hbb_customer.msisdn).first()
+
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    radius = 6371.0
+    p1 = math.radians(float(lat1))
+    p2 = math.radians(float(lat2))
+    d_lat = math.radians(float(lat2) - float(lat1))
+    d_lon = math.radians(float(lon2) - float(lon1))
+    a = math.sin(d_lat / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(d_lon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return radius * c
+
+
+def cells_info_table_exists():
+    try:
+        with connection.cursor() as cursor:
+            tables = connection.introspection.table_names(cursor)
+        return 'cells_info' in tables
+    except Exception:
+        return False
+
+
+def generate_csv(csv_data):
+    """
+    Generate CSV string from extracted data
+    """
+    if not csv_data:
+        return "MSISDN,Custom1,Custom2,Custom8,BillingDay,Custom3\n"
+    
+    output = io.StringIO()
+    writer = csv.writer(output, quoting=csv.QUOTE_ALL)  # Quote all fields to handle commas properly
+    
+    # Write header
+    writer.writerow(['MSISDN', 'Custom1', 'Custom2', 'Custom8', 'BillingDay', 'Custom3'])
+    
+    # Write data rows
+    for row in csv_data:
+        writer.writerow([
+            row.get('MSISDN', ''),
+            row.get('Custom1', ''),
+            row.get('Custom2', ''),
+            row.get('Custom8', ''),
+            row.get('BillingDay', ''),
+            row.get('Custom3', '')
+        ])
+    
+    return output.getvalue()
+
+def dashboard(request):
+    """
+    Dashboard page - main entry point with navigation to converter and coordinates
+    """
+    return render(request, 'converter/dashboard.html')
 
 def index(request):
     """
@@ -345,4 +412,385 @@ def upload_exml_file(request):
         return JsonResponse({
             'success': False,
             'error': f'File processing error: {str(e)}'
+        })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_customer_coordinates(request):
+    """
+    Get customer coordinates and cell tower information
+    """
+    try:
+        data = json.loads(request.body)
+        customer_lookup = data.get('customer_id', '').strip()
+        
+        if not customer_lookup:
+            return JsonResponse({
+                'success': False,
+                'error': 'Customer ID or MSISDN is required'
+            })
+
+        hbb_customer = find_customer_by_lookup(customer_lookup)
+        if not hbb_customer:
+            return JsonResponse({
+                'success': False,
+                'error': f'Customer {customer_lookup} not found in hbb_customers'
+            })
+
+        coord = find_customer_coordinates(hbb_customer)
+        if not coord:
+            return JsonResponse({
+                'success': False,
+                'error': f'No coordinate data found for MSISDN {hbb_customer.msisdn}',
+                'customer': {
+                    'customer_id': str(hbb_customer.id),
+                    'msisdn': hbb_customer.msisdn,
+                    'name': hbb_customer.customer_name,
+                    'custom3_cells': [],
+                    'has_cell_assignment': False,
+                }
+            })
+
+        return JsonResponse({
+            'success': True,
+            'customer': {
+                'customer_id': str(hbb_customer.id),
+                'msisdn': hbb_customer.msisdn,
+                'name': hbb_customer.customer_name,
+                'latitude': coord.latitude,
+                'longitude': coord.longitude,
+                'cell_tower_id': coord.location or '',
+                'cell_tower_name': coord.location or '',
+                'assigned_at': coord.created_at.isoformat() if coord.created_at else None,
+                'is_active': True,
+                'custom3_cells': coord.custom3_cells,
+                'has_cell_assignment': len(coord.custom3_cells) > 0,
+            }
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def check_customer_cells(request):
+    """
+    Check if customer has cell towers assigned from Custom3 data
+    """
+    try:
+        data = json.loads(request.body)
+        customer_lookup = data.get('customer_id', '').strip()
+        
+        if not customer_lookup:
+            return JsonResponse({
+                'success': False,
+                'error': 'Customer ID or MSISDN is required'
+            })
+
+        hbb_customer = find_customer_by_lookup(customer_lookup)
+        if not hbb_customer:
+            return JsonResponse({
+                'success': False,
+                'error': f'Customer {customer_lookup} not found in hbb_customers'
+            })
+
+        coord = find_customer_coordinates(hbb_customer)
+        custom3_cells = coord.custom3_cells if coord else []
+        has_cell_assignment = len(custom3_cells) > 0
+
+        has_coordinates = coord is not None and coord.latitude is not None and coord.longitude is not None
+        coordinates_cell_tower_id = coord.location if coord and coord.location else ''
+        coordinates_cell_in_custom3 = bool(
+            coordinates_cell_tower_id and coordinates_cell_tower_id in custom3_cells
+        )
+
+        return JsonResponse({
+            'success': True,
+            'customer_id': str(hbb_customer.id),
+            'msisdn': hbb_customer.msisdn,
+            'has_coordinates': has_coordinates,
+            'custom3_cells': custom3_cells,
+            'has_cell_assignment': has_cell_assignment,
+            'coordinates_cell_tower_id': coordinates_cell_tower_id,
+            'coordinates_cell_in_custom3': coordinates_cell_in_custom3,
+            'message': (
+                'Coordinates and custom3 cells are aligned'
+                if has_coordinates and coordinates_cell_in_custom3
+                else 'Review customer assignment: coordinates/custom3 mismatch or missing data'
+            ),
+            'unlimited_access': (not has_cell_assignment) and (not has_coordinates)
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        })
+
+
+def coordinates_page(request):
+    """
+    Display all HBB customers
+    """
+    customers = list(HBBCustomer.objects.all().order_by('id'))
+    coords = CustomerCoordinate.objects.exclude(msisdn__isnull=True).exclude(msisdn='')
+    coord_by_msisdn = {}
+    for coord in coords:
+        coord_by_msisdn[coord.msisdn] = coord
+    coord_msisdn_set = set(coord_by_msisdn.keys())
+
+    all_customers = []
+    found_customers = []
+    unlocked_customers = []
+    for customer in customers:
+        coord = coord_by_msisdn.get(customer.msisdn) if customer.msisdn in coord_msisdn_set else None
+        custom3_value = (coord.custom3 or '').strip() if coord else ''
+
+        if coord:
+            status = 'Locked' if custom3_value else 'UnLocked'
+        else:
+            status = 'NotFound'
+
+        all_customers.append({
+            'customer': customer,
+            'status': status,
+        })
+
+        if coord:
+            has_coordinates = coord.latitude is not None and coord.longitude is not None
+            is_locked = bool(custom3_value)
+            found_customers.append({
+                'customer': customer,
+                'is_locked': is_locked,
+                'custom3': custom3_value,
+            })
+            if not is_locked:
+                unlocked_customers.append({
+                    'customer': customer,
+                    'latitude': coord.latitude,
+                    'longitude': coord.longitude,
+                    'has_coordinates': has_coordinates,
+                })
+    not_found_customers = [c for c in customers if c.msisdn not in coord_msisdn_set]
+    has_cells_info_table = cells_info_table_exists()
+    cells_info_count = CellsInfo.objects.count() if has_cells_info_table else 0
+
+    return render(
+        request,
+        'converter/coordinates.html',
+        {
+            'customers': customers,
+            'all_customers': all_customers,
+            'found_customers': found_customers,
+            'not_found_customers': not_found_customers,
+            'unlocked_customers': unlocked_customers,
+            'cell_towers_count': cells_info_count,
+            'has_cell_towers_table': has_cells_info_table,
+        },
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def suggest_nearest_cells(request):
+    try:
+        if not cells_info_table_exists():
+            return JsonResponse({
+                'success': False,
+                'error': 'cells_info table is missing in database',
+            })
+
+        msisdn = request.GET.get('msisdn', '').strip()
+        if not msisdn:
+            return JsonResponse({'success': False, 'error': 'msisdn is required'})
+
+        customer = HBBCustomer.objects.filter(msisdn=msisdn).first()
+        if not customer:
+            return JsonResponse({'success': False, 'error': f'Customer {msisdn} not found'})
+
+        coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
+        if not coord or coord.latitude is None or coord.longitude is None:
+            return JsonResponse({'success': False, 'error': f'Coordinates not available for {msisdn}'})
+
+        towers = CellsInfo.objects.exclude(lat__isnull=True).exclude(lon__isnull=True)
+        if not towers.exists():
+            return JsonResponse({
+                'success': False,
+                'error': 'No cells found in cells_info table',
+            })
+
+        customer_lat = float(coord.latitude)
+        customer_lon = float(coord.longitude)
+        nearest = []
+        for tower in towers:
+            distance_km = haversine_km(customer_lat, customer_lon, tower.lat, tower.lon)
+            nearest.append({
+                'cell_id': str(tower.eutracelid or tower.id),
+                'cell_name': tower.name or (tower.cell or ''),
+                'region': tower.district or tower.province or '',
+                'site_name': tower.sector or '',
+                'latitude': float(tower.lat),
+                'longitude': float(tower.lon),
+                'distance_km': round(distance_km, 3),
+            })
+
+        nearest.sort(key=lambda row: row['distance_km'])
+        nearest = nearest[:10]
+
+        return JsonResponse({
+            'success': True,
+            'customer': {
+                'id': customer.id,
+                'msisdn': customer.msisdn,
+                'name': customer.customer_name,
+                'latitude': customer_lat,
+                'longitude': customer_lon,
+                'current_cells': coord.custom3_cells,
+            },
+            'suggested_cells': nearest,
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Server error: {str(e)}'})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def save_customer_cells(request):
+    try:
+        payload = json.loads(request.body)
+        msisdn = str(payload.get('msisdn', '')).strip()
+        selected_cells = payload.get('selected_cells', [])
+        if not msisdn:
+            return JsonResponse({'success': False, 'error': 'msisdn is required'})
+        if not isinstance(selected_cells, list):
+            return JsonResponse({'success': False, 'error': 'selected_cells must be a list'})
+
+        cell_ids = [str(c).strip() for c in selected_cells if str(c).strip()]
+        unique_cell_ids = []
+        for cid in cell_ids:
+            if cid not in unique_cell_ids:
+                unique_cell_ids.append(cid)
+
+        coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
+        if not coord:
+            return JsonResponse({'success': False, 'error': f'Customer coordinate row not found for {msisdn}'})
+
+        coord.custom3 = ','.join(unique_cell_ids)
+        coord.save(update_fields=['custom3'])
+
+        return JsonResponse({
+            'success': True,
+            'msisdn': msisdn,
+            'saved_cells': unique_cell_ids,
+            'message': 'Customer cells updated successfully',
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON body'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Server error: {str(e)}'})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_all_customers(request):
+    """
+    Get all customers with their coordinate status
+    """
+    try:
+        customers = CustomerCoordinate.objects.all().order_by('-created_at')
+        
+        customer_list = []
+        for customer in customers:
+            customer_list.append({
+                'customer_id': customer.msisdn or str(customer.id),
+                'latitude': customer.latitude,
+                'longitude': customer.longitude,
+                'cell_tower_id': customer.location or '',
+                'cell_tower_name': customer.location or '',
+                'assigned_at': customer.created_at.isoformat() if customer.created_at else '',
+                'is_active': True
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'customers': customer_list,
+            'total_count': len(customer_list)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        })
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_customers_with_coords(request):
+    """
+    Get all HBB customers with their coordinates and cell assignments
+    """
+    try:
+        customers = HBBCustomer.objects.all().order_by('id')
+        
+        customer_list = []
+        for customer in customers:
+            # Try to find coordinates for this customer using msisdn reference
+            coords = None
+            coord = find_customer_coordinates(customer)
+            if coord:
+                coords = {
+                    'latitude': coord.latitude,
+                    'longitude': coord.longitude,
+                    'cell_tower_id': coord.location or '',
+                    'cell_tower_name': coord.location or '',
+                    'is_active': True
+                }
+            assigned_cells = coord.custom3_cells if coord else []
+            coordinates_cell_in_custom3 = bool(
+                coords and coords.get('cell_tower_id') and coords.get('cell_tower_id') in assigned_cells
+            )
+            
+            customer_list.append({
+                'customer_id': str(customer.id),
+                'msisdn': customer.msisdn,
+                'name': customer.customer_name,
+                'region': coord.region if coord else '',
+                'role': coord.custom8 if coord else '',
+                'billing_day': coord.billing_day if coord else None,
+                'assigned_cells': assigned_cells,
+                'has_cell_assignment': len(assigned_cells) > 0,
+                'coordinates': coords,
+                'has_coordinates': coords is not None,
+                'coordinates_cell_in_custom3': coordinates_cell_in_custom3,
+                'updated_at': customer.created_at.isoformat() if customer.created_at else ''
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'customers': customer_list,
+            'total_count': len(customer_list),
+            'with_coords': len([c for c in customer_list if c['has_coordinates']]),
+            'with_cells': len([c for c in customer_list if c['has_cell_assignment']]),
+            'both': len([c for c in customer_list if c['has_coordinates'] and c['has_cell_assignment']]),
+            'cells_match_coords': len([c for c in customer_list if c['coordinates_cell_in_custom3']])
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
         })

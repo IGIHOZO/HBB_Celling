@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HBB Customer Manager · Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 60px;
+            color: white;
+        }
+
+        .logo-wrapper {
+            margin-bottom: 30px;
+        }
+
+        .logo-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            object-fit: contain;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hero-section p {
+            font-size: 1.3rem;
+            font-weight: 300;
+            opacity: 0.95;
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            letter-spacing: 0.5px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: left;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 28px 56px rgba(0,0,0,0.15), 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #0a2540;
+        }
+
+        .card-description {
+            font-size: 0.95rem;
+            color: #5b6f82;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .card-features {
+            list-style: none;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .card-features li {
+            padding: 8px 0;
+            color: #5b6f82;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-features li::before {
+            content: '✓';
+            color: #10b981;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .card-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            align-self: flex-start;
+        }
+
+        .card-button:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .footer-section {
+            text-align: center;
+            color: white;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer-section p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-section p {
+                font-size: 1.1rem;
+            }
+
+            .card {
+                padding: 32px 24px;
+            }
+
+            .card-title {
+                font-size: 1.5rem;
+            }
+
+            .card-icon {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="logo-wrapper">
+                <img src="{% static 'KTRN_Logo.jpg' %}" alt="KTRN Logo" class="logo-image">
+            </div>
+            <h1>HBB Customer Manager</h1>
+            <p>Manage your cell systems with precision</p>
+            <p class="tagline">EXML Processing • Location Management • State Control</p>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid">
+            <!-- Converter Card -->
+            <a href="/converter/" class="card">
+                <div class="card-icon">📊</div>
+                <h2 class="card-title">EXML Converter</h2>
+                <p class="card-description">
+                    Transform EXML export files into structured XML format. Process batch subscriber records and export to CSV for analysis.
+                </p>
+                <ul class="card-features">
+                    <li>Convert EXML to XML</li>
+                    <li>Export to CSV format</li>
+                    <li>Batch file upload</li>
+                    <li>Interactive tree view</li>
+                </ul>
+                <span class="card-button">
+                    <i class="fas fa-arrow-right"></i> Open Converter
+                </span>
+            </a>
+
+            <!-- Coordinates Card -->
+            <a href="/coordinates/" class="card">
+                <div class="card-icon">📍</div>
+                <h2 class="card-title">Coordinates Manager</h2>
+                <p class="card-description">
+                    Manage customer coordinates and cell tower assignments. Check location data, cell assignments, and track customer positions.
+                </p>
+                <ul class="card-features">
+                    <li>Check coordinates</li>
+                    <li>View cell assignments</li>
+                    <li>Add customer data</li>
+                    <li>Location tracking</li>
+                </ul>
+                <span class="card-button">
+                    <i class="fas fa-arrow-right"></i> Open Coordinates
+                </span>
+            </a>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer-section">
+            <p><i class="fas fa-infinity"></i> Unlimited processing • Full EXML support</p>
+            <div class="version-badge">HBB v1.0 • Cell Management System</div>
+        </div>
+    </div>
+</body>
+</html>

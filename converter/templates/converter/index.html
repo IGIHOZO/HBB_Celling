@@ -355,7 +355,14 @@
                 <p>Manage customer cells • dispensed, locked, unlocked states • EXML processing</p>
             </div>
         </div>
-        <div class="badge-unlimited"><i class="fas fa-mobile-alt"></i> Cell Management · Full Control</div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <nav style="display: flex; gap: 12px;">
+                <a href="/" style="padding: 8px 16px; background: #1e5a8a; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-home"></i> Home</a>
+                <a href="/converter/" style="padding: 8px 16px; background: #1e5a8a; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-exchange-alt"></i> Converter</a>
+                <a href="/coordinates/" style="padding: 8px 16px; background: #6c757d; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-map-marker-alt"></i> Coordinates</a>
+            </nav>
+            <div class="badge-unlimited"><i class="fas fa-mobile-alt"></i> Cell Management · Full Control</div>
+        </div>
     </div>
 
     <!-- drag & drop (no size restrictions frontend, backend will handle large but we remove client limit message) -->
@@ -968,6 +975,167 @@
     // CSV event listeners
     toggleCsvViewBtn.addEventListener('click', toggleCsvView);
     downloadCsvBtn.addEventListener('click', downloadCsv);
+
+    // Customer coordinates elements
+    const checkCoordinatesBtn = document.getElementById('checkCoordinatesBtn');
+    const checkCellsBtn = document.getElementById('checkCellsBtn');
+    const addCoordinatesBtn = document.getElementById('addCoordinatesBtn');
+    const coordinatesPanel = document.getElementById('coordinatesPanel');
+
+    // Customer coordinates functions
+    async function checkCustomerCoordinates() {
+        const customerId = prompt('Enter Customer ID or MSISDN:');
+        if (!customerId) {
+            showMsg('Customer ID is required', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/get-coordinates/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ customer_id: customerId })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                displayCoordinatesResult(data);
+                showMsg(`✓ Found coordinates for ${customerId}`, 'success');
+            } else {
+                showMsg(data.error || 'Error checking coordinates', 'error');
+            }
+        } catch (err) {
+            showMsg('Network error: ' + err.message, 'error');
+        }
+    }
+
+    async function checkCustomerCells() {
+        const customerId = prompt('Enter Customer ID or MSISDN:');
+        const custom3Data = prompt('Enter Custom3 data (comma-separated cell IDs):');
+        
+        if (!customerId) {
+            showMsg('Customer ID is required', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/check-cells/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ 
+                    customer_id: customerId,
+                    custom3_data: custom3Data || ''
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                displayCellAssignmentResult(data);
+                showMsg(`✓ Cell assignment checked for ${customerId}`, 'success');
+            } else {
+                showMsg(data.error || 'Error checking cell assignment', 'error');
+            }
+        } catch (err) {
+            showMsg('Network error: ' + err.message, 'error');
+        }
+    }
+
+    async function addCustomerCoordinates() {
+        const customerId = prompt('Enter Customer ID:');
+        const latitude = prompt('Enter latitude:');
+        const longitude = prompt('Enter longitude:');
+        const cellTowerId = prompt('Enter Cell Tower ID:');
+        const cellTowerName = prompt('Enter Cell Tower Name:');
+        
+        if (!customerId || !latitude || !longitude || !cellTowerId) {
+            showMsg('All fields are required', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/add-coordinates/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({
+                    customer_id: customerId,
+                    latitude: parseFloat(latitude),
+                    longitude: parseFloat(longitude),
+                    cell_tower_id: cellTowerId,
+                    cell_tower_name: cellTowerName
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                showMsg(`✓ Customer ${customerId} added to coordinates`, 'success');
+                // Clear form fields
+                document.getElementById('customerId').value = '';
+                document.getElementById('latitude').value = '';
+                document.getElementById('longitude').value = '';
+                document.getElementById('cellTowerId').value = '';
+                document.getElementById('cellTowerName').value = '';
+            } else {
+                showMsg(data.error || 'Error adding customer', 'error');
+            }
+        } catch (err) {
+            showMsg('Network error: ' + err.message, 'error');
+        }
+    }
+
+    function displayCoordinatesResult(data) {
+        const customer = data.customer;
+        coordinatesPanel.innerHTML = `
+            <div style="padding: 20px; background: white; border-radius: 8px; margin-bottom: 15px;">
+                <h3 style="color: #0a2540; margin-bottom: 10px;">📍 Customer Coordinates</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                    <div><strong>Customer ID:</strong> ${customer.customer_id}</div>
+                    <div><strong>Latitude:</strong> ${customer.latitude}</div>
+                    <div><strong>Longitude:</strong> ${customer.longitude}</div>
+                    <div><strong>Cell Tower ID:</strong> ${customer.cell_tower_id}</div>
+                    <div><strong>Cell Tower Name:</strong> ${customer.cell_tower_name}</div>
+                    <div><strong>Status:</strong> ${customer.is_active ? '🟢 Active' : '🔴 Inactive'}</div>
+                    <div><strong>Assigned:</strong> ${new Date(customer.assigned_at).toLocaleString()}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function displayCellAssignmentResult(data) {
+        const hasCoordinates = data.has_coordinates;
+        const hasCellAssignment = data.has_cell_assignment;
+        const unlimitedAccess = data.unlimited_access;
+        const custom3Cells = data.custom3_cells || [];
+
+        coordinatesPanel.innerHTML = `
+            <div style="padding: 20px; background: white; border-radius: 8px; margin-bottom: 15px;">
+                <h3 style="color: #0a2540; margin-bottom: 15px;">📱 Cell Assignment Status</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px;">
+                    <div style="padding: 10px; background: ${hasCoordinates ? '#d4edda' : '#f8d7da'}; border-radius: 6px;">
+                        <div style="margin-bottom: 8px;"><strong>📍 Coordinates:</strong> ${hasCoordinates ? '✅ Assigned' : '❌ Not Found'}</div>
+                        <div><strong>Cell Assignment:</strong> ${hasCellAssignment ? '✅ Assigned' : '❌ No Assignment'}</div>
+                        <div><strong>Access Level:</strong> ${unlimitedAccess ? '🌍 Unlimited (Critical!)' : '📶 Restricted'}</div>
+                    </div>
+                    <div style="padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                        <div style="margin-bottom: 10px;"><strong>📋 Custom3 Cell IDs:</strong></div>
+                        <div style="max-height: 150px; overflow-y: auto; background: white; padding: 10px; border-radius: 4px; font-family: monospace;">
+                            ${custom3Cells.length > 0 ? custom3Cells.join(', ') : 'No cell IDs found'}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 6px; font-size: 12px;">
+                    <strong>📝 Message:</strong> ${data.message}
+                </div>
+            </div>
+        `;
+    }
+
+    // Customer coordinates event listeners
+    checkCoordinatesBtn.addEventListener('click', checkCustomerCoordinates);
+    checkCellsBtn.addEventListener('click', checkCustomerCells);
+    addCoordinatesBtn.addEventListener('click', addCustomerCoordinates);
 
     // sample exml for demo visibility (battery ready)
     if (!exmlInput.value) {
