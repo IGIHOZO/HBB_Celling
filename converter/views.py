@@ -619,6 +619,7 @@ def coordinates_page(request):
         all_customers.append({
             'customer': customer,
             'status': status,
+            'custom3': custom3_value,
         })
 
         if coord:

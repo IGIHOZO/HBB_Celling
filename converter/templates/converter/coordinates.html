@@ -757,6 +757,30 @@ input[type="checkbox"] {
 ::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gray-300); }
 
+/* Cell Count Display */
+.cells-column {
+  max-width: 120px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.cell-count {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--blue);
+}
+
+.cell-label {
+  font-size: 11px;
+  color: var(--gray);
+  margin-left: 2px;
+}
+
+.no-cells {
+  color: var(--gray-300);
+  font-style: italic;
+}
+
 /* DataTables Pagination Fix */
 .dataTables_wrapper .dataTables_paginate {
   margin-top: 20px;
@@ -809,6 +833,296 @@ input[type="checkbox"] {
 
 .dataTables_wrapper .dt-buttons {
   margin-bottom: 15px;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 800px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  background: #f8f9fa;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--gray);
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--gray-100);
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: calc(80vh - 80px);
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--gray);
+}
+
+.loading-spinner .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--gray-200);
+  border-top: 3px solid var(--blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+.mini {
+  font-size: 13px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.mini th {
+  background: var(--gray-50);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.mini td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.mini tr:hover {
+  background: var(--gray-50);
+}
+
+.expand-label {
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+/* Nearest Cells Modal Styles */
+.customer-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 16px;
+}
+
+.customer-header h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.customer-coords {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray);
+}
+
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--blue);
+  padding: 4px 8px;
+  background: var(--blue-50);
+  border-radius: 4px;
+}
+
+.cells-table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.cells-table {
+  width: 100%;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+
+.cells-table th {
+  background: var(--gray-50);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.cells-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  vertical-align: middle;
+}
+
+.cells-table tr:hover {
+  background: var(--gray-50);
+}
+
+.cells-table tr.selected {
+  background: var(--blue-50);
+}
+
+.signal-strength {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.signal-excellent {
+  background: var(--green-100);
+  color: var(--green-700);
+}
+
+.signal-good {
+  background: var(--blue-100);
+  color: var(--blue-700);
+}
+
+.signal-fair {
+  background: var(--amber-100);
+  color: var(--amber-700);
+}
+
+.signal-poor {
+  background: var(--red-100);
+  color: var(--red-700);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 0 0;
+  border-top: 1px solid var(--gray-200);
+}
+
+.manual-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.manual-input {
+  min-width: 200px;
+  padding: 6px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.manual-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px var(--blue-100);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-200);
+  color: var(--gray-800);
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
 }
 
 /* Responsive */
@@ -894,7 +1208,7 @@ input[type="checkbox"] {
     <div class="sidebar-bottom">
       <div class="status-badge">
         <div class="pulse-dot"></div>
-        <span>Full control · no limits</span>
+        <span>Full control * KTRN</span>
       </div>
     </div>
   </aside>
@@ -962,8 +1276,9 @@ input[type="checkbox"] {
                                 <th class="sortable" data-col="1" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
                                 <th class="sortable" data-col="2" data-key="name">Customer name <span class="sort-icon"></span></th>
                                 <th class="sortable" data-col="3" data-key="product">Product <span class="sort-icon"></span></th>
-                                <th class="sortable" data-col="4" data-key="date">Order date <span class="sort-icon"></span></th>
+                                <th>Cells</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-all">
@@ -973,7 +1288,15 @@ input[type="checkbox"] {
                                 <td>{{ row.customer.msisdn|default:"-" }}</td>
                                 <td>{{ row.customer.customer_name|default:"-" }}</td>
                                 <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
-                                <td class="dim">{{ row.customer.price_plan_order_date|default:"-" }}</td>
+                                <td class="cells-column">
+                                    {% if row.custom3 %}
+                                        {% with cell_count=row.custom3.split|length %}
+                                            <span class="cell-count">{{ cell_count|intcomma }}</span>
+                                        {% endwith %}
+                                    {% else %}
+                                        <span class="no-cells">-</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if row.status == 'Locked' %}
                                         <span class="pill pill-locked">Locked</span>
@@ -981,6 +1304,20 @@ input[type="checkbox"] {
                                         <span class="pill pill-unlocked">Unlocked</span>
                                     {% else %}
                                         <span class="pill pill-notfound">{{ row.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.status == 'Locked' %}
+                                        <button
+                                            class="btn btn-distance-check"
+                                            data-msisdn="{{ row.customer.msisdn|default:'' }}">
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                                            </svg>
+                                            View distances
+                                        </button>
+                                    {% else %}
+                                        <span class="no-actions">-</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -1021,7 +1358,6 @@ input[type="checkbox"] {
                                 <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
                                 <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
                                 <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="date">Order date <span class="sort-icon"></span></th>
                                 <th>Lock status</th>
                                 <th>Cells</th>
                                 <th>Actions</th>
@@ -1034,7 +1370,6 @@ input[type="checkbox"] {
                                 <td>{{ row.customer.msisdn|default:"-" }}</td>
                                 <td>{{ row.customer.customer_name|default:"-" }}</td>
                                 <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
-                                <td class="dim">{{ row.customer.price_plan_order_date|default:"-" }}</td>
                                 <td>
                                     {% if row.is_locked %}
                                         <span class="pill pill-locked">Locked</span>
@@ -1042,7 +1377,15 @@ input[type="checkbox"] {
                                         <span class="pill pill-unlocked">Unlocked</span>
                                     {% endif %}
                                 </td>
-                                <td class="dim">{{ row.custom3|default:"-" }}</td>
+                                <td class="cells-column">
+                                    {% if row.custom3 %}
+                                        {% with cell_count=row.custom3.split|length %}
+                                            <span class="cell-count">{{ cell_count|intcomma }}</span>
+                                        {% endwith %}
+                                    {% else %}
+                                        <span class="no-cells">-</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <button
                                         class="btn btn-distance-check"
@@ -1056,7 +1399,7 @@ input[type="checkbox"] {
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="8">
+                            <tr><td colspan="6">
                                 <div class="empty-state"><p>No customers found.</p></div>
                             </td></tr>
                             {% endfor %}
@@ -1091,7 +1434,6 @@ input[type="checkbox"] {
                                 <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
                                 <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
                                 <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="date">Order date <span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody id="tbody-not-found">
@@ -1101,10 +1443,9 @@ input[type="checkbox"] {
                                 <td>{{ customer.msisdn|default:"-" }}</td>
                                 <td>{{ customer.customer_name|default:"-" }}</td>
                                 <td class="muted">{{ customer.product_name|default:"-" }}</td>
-                                <td class="dim">{{ customer.price_plan_order_date|default:"-" }}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5">
+                            <tr><td colspan="4">
                                 <div class="empty-state"><p>No customers found.</p></div>
                             </td></tr>
                             {% endfor %}
@@ -1184,7 +1525,7 @@ input[type="checkbox"] {
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5">
+                            <tr><td colspan="6">
                                 <div class="empty-state"><p>No unlocked customers found.</p></div>
                             </td></tr>
                             {% endfor %}
@@ -1347,39 +1688,33 @@ $(function () {
 
     window.filterTable = filterTable;
 
-    // Init all tables
-    initTableSearch('all', 'tbl-all');
-    initTableSearch('found', 'tbl-found');
-    initTableSearch('not-found', 'tbl-not-found');
-    initTableSearch('unlocked', 'tbl-unlocked');
+    // Old table functionality disabled - using DataTables instead
+    // initTableSearch('all', 'tbl-all');
+    // initTableSearch('found', 'tbl-found');
+    // initTableSearch('not-found', 'tbl-not-found');
+    // initTableSearch('unlocked', 'tbl-unlocked');
 
     // ── Distance check (Found panel) ────────────────────────────
     $(document).on('click', '.btn-distance-check', async function () {
         const btn = $(this);
         const msisdn = btn.data('msisdn');
-        const expandRow = btn.closest('tr').next('.expand-row');
-        const inner = $(`#dist-inner-${msisdn}`);
-
-        if (expandRow.is(':visible')) {
-            expandRow.hide();
-            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg> View distances`);
-            return;
-        }
-
-        btn.prop('disabled', true).html(`<span class="spinner"></span> Loading…`);
-        inner.html('');
+        
+        // Show modal with loading state
+        openDistanceModal();
+        const modalBody = document.getElementById('distanceModalBody');
+        modalBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading distances...</p></div>';
 
         try {
             const res = await fetch(`/registered-cell-distances/?msisdn=${encodeURIComponent(msisdn)}`);
             const data = await res.json();
 
             if (!data.success) {
-                showNotice(inner, 'warn', data.error || 'Failed to load distances');
+                modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">${escHtml(data.error || 'Failed to load distances')}</div>`;
                 return;
             }
 
             if (!data.distances.length) {
-                showNotice(inner, 'info', 'No registered cells with coordinates found for this customer.');
+                modalBody.innerHTML = `<div class="notice notice-info" style="margin:20px">No registered cells with coordinates found for this customer.</div>`;
             } else {
                 let html = `<div class="expand-label">${escHtml(data.customer.msisdn)} — distances to registered cells</div>`;
                 html += `<div style="overflow-x:auto"><table class="mini">
@@ -1402,75 +1737,90 @@ $(function () {
                         <svg class="notice-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         Not found in cells_info: ${escHtml(data.not_found_cells.join(', '))}</div>`;
                 }
-                inner.html(html);
+                modalBody.innerHTML = html;
             }
-
-            expandRow.show();
-            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg> Hide`);
         } catch (err) {
-            showNotice(inner, 'warn', `Error: ${err.message}`);
-            expandRow.show();
-        } finally {
-            btn.prop('disabled', false);
+            modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">Error: ${escHtml(err.message)}</div>`;
         }
     });
+
+    // ── Modal Functions ───────────────────────────────────────
+    function openDistanceModal() {
+        document.getElementById('distanceModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
 
     // ── Suggest nearest cells (Unlocked panel) ──────────────────
     $(document).on('click', '.btn-suggest', async function () {
         const btn = $(this);
         const msisdn = btn.data('msisdn');
         const custId = btn.data('customer-id');
-        const expandRow = btn.closest('tr').next('.expand-row');
-        const inner = $(`#suggestions-${custId}`);
-
-        if (expandRow.is(':visible')) {
-            expandRow.hide();
-            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Suggest nearest cells`);
-            return;
-        }
-
-        btn.prop('disabled', true).html(`<span class="spinner"></span> Loading…`);
-        inner.html('');
+        
+        // Show modal with loading state
+        openNearestCellsModal();
+        const modalBody = document.getElementById('nearestCellsModalBody');
+        modalBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Finding nearest cells...</p></div>';
 
         try {
-            const res = await fetch(`/suggest-nearest-cells/?msisdn=${encodeURIComponent(msisdn)}`);
+            const res = await fetch(`/suggest-nearest-cells/?msisdn=${encodeURIComponent(msisdn)}&limit=20`);
             const data = await res.json();
 
             if (!data.success) {
-                showNotice(inner, 'warn', data.error || 'Failed to load suggestions');
-                expandRow.show();
+                modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">${escHtml(data.error || 'Failed to load suggestions')}</div>`;
                 return;
             }
 
             if (!data.suggested_cells.length) {
-                showNotice(inner, 'info', 'No nearby cells found for this customer.');
-                expandRow.show();
+                modalBody.innerHTML = `<div class="notice notice-info" style="margin:20px">No nearby cells found for this customer.</div>`;
                 return;
             }
 
-            let html = `<div class="expand-label">${escHtml(data.customer.msisdn)} — select cells to assign</div>`;
-            html += `<div style="overflow-x:auto"><table class="mini" id="cell-tbl-${custId}">
-                <thead><tr>
-                    <th style="width:36px"></th>
-                    <th>Cell ID</th><th>Name</th><th>Region</th><th>Coordinates</th><th>Distance</th>
-                </tr></thead>
-                <tbody>`;
+            let html = `<div class="customer-info">
+                <div class="customer-header">
+                    <h4>${escHtml(data.customer.msisdn)} - ${escHtml(data.customer.customer_name || 'Unknown')}</h4>
+                    <p class="customer-coords">Coordinates: ${escHtml(String(data.customer.latitude))}, ${escHtml(String(data.customer.longitude))}</p>
+                </div>
+                <div class="selection-info">
+                    <span class="selected-count" id="selectedCount-${custId}">0 cells selected</span>
+                    <button class="btn btn-sm" onclick="selectAllCells('${custId}')">Select All</button>
+                    <button class="btn btn-sm" onclick="clearAllCells('${custId}')">Clear All</button>
+                </div>
+            </div>`;
+            
+            html += `<div class="cells-table-container">
+                <table class="cells-table" id="cell-tbl-${custId}">
+                    <thead>
+                        <tr>
+                            <th style="width:50px"><input type="checkbox" id="selectAll-${custId}" onchange="toggleAllCells('${custId}')"></th>
+                            <th>Cell ID</th>
+                            <th>Name</th>
+                            <th>Region</th>
+                            <th>Coordinates</th>
+                            <th>Distance</th>
+                            <th>Signal</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
             data.suggested_cells.forEach((cell, idx) => {
+                const signalStrength = getSignalStrength(cell.distance_km);
+                const isAssigned = cell.is_assigned || false; // Check if cell is already assigned to this customer
                 html += `<tr>
-                    <td style="text-align:center"><input type="checkbox" class="cell-checkbox" value="${escHtml(cell.cell_id)}" ${idx < 3 ? 'checked' : ''}></td>
+                    <td style="text-align:center"><input type="checkbox" class="cell-checkbox" data-cust-id="${custId}" value="${escHtml(cell.cell_id)}" ${isAssigned ? 'checked' : ''} onchange="updateSelectedCount('${custId}')"></td>
                     <td><span class="id-chip">${escHtml(cell.cell_id)}</span></td>
                     <td>${escHtml(cell.cell_name || '—')}</td>
                     <td class="muted">${escHtml(cell.region || '—')}</td>
                     <td class="muted" style="font-size:12px">${escHtml(String(cell.latitude))}, ${escHtml(String(cell.longitude))}</td>
                     <td><strong>${escHtml(String(cell.distance_km))} km</strong></td>
+                    <td>${signalStrength}</td>
                 </tr>`;
             });
             html += `</tbody></table></div>`;
 
             html += `
-                <div class="suggest-actions">
+                <div class="modal-actions">
                     <div class="manual-input-group">
-                        <input type="text" placeholder="Add manual cell ID (optional)" id="manual-input-${custId}">
+                        <input type="text" placeholder="Add manual cell ID (optional)" id="manual-input-${custId}" class="manual-input">
                         <button class="btn" onclick="addManualCell('${custId}')">
                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -1478,24 +1828,23 @@ $(function () {
                             Add cell
                         </button>
                     </div>
-                    <button class="btn btn-primary" onclick="saveCells('${msisdn}','${custId}')" id="save-btn-${custId}" style="margin-left:auto">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Save selected cells
-                    </button>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="closeNearestCellsModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="saveCells('${msisdn}','${custId}')" id="save-btn-${custId}">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Save selected cells
+                        </button>
+                    </div>
                 </div>
-                <div class="notice notice-success" id="save-ok-${custId}"></div>
+                <div class="notice notice-success" id="save-ok-${custId}" style="display:none"></div>
             `;
 
-            inner.html(html);
-            expandRow.show();
-            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg> Hide`);
+            modalBody.innerHTML = html;
+            updateSelectedCount(custId);
         } catch (err) {
-            showNotice(inner, 'warn', `Error: ${err.message}`);
-            expandRow.show();
-        } finally {
-            btn.prop('disabled', false);
+            modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">Error: ${escHtml(err.message)}</div>`;
         }
     });
 
@@ -1696,7 +2045,95 @@ $(function () {
     $(document).ready(function() {
         initDataTables();
     });
+
+    // ── Export Data Function ───────────────────────────────────────
+    function exportData() {
+        // Find the active panel and export its table data
+        const activePanel = document.querySelector('.panel.active');
+        if (!activePanel) {
+            alert('No active table to export');
+            return;
+        }
+
+        const tableId = activePanel.querySelector('table').id;
+        const table = $(`#${tableId}`);
+        
+        if (table.length && $.fn.dataTable.isDataTable(table)) {
+            const dataTable = table.DataTable();
+            
+            // Trigger Excel export
+            dataTable.button(0).trigger();
+        } else {
+            alert('Table not initialized for export');
+        }
+    }
 });
+
+// ── Global Modal Functions ───────────────────────────────────────
+function closeDistanceModal() {
+    document.getElementById('distanceModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function openNearestCellsModal() {
+    document.getElementById('nearestCellsModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeNearestCellsModal() {
+    document.getElementById('nearestCellsModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// ── Cell Selection Functions ───────────────────────────────────────
+function getSignalStrength(distance) {
+    if (distance < 1) return '<span class="signal-strength signal-excellent">Excellent</span>';
+    if (distance < 3) return '<span class="signal-strength signal-good">Good</span>';
+    if (distance < 5) return '<span class="signal-strength signal-fair">Fair</span>';
+    return '<span class="signal-strength signal-poor">Poor</span>';
+}
+
+function updateSelectedCount(custId) {
+    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
+    const checked = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]:checked`);
+    const countElement = document.getElementById(`selectedCount-${custId}`);
+    if (countElement) {
+        countElement.textContent = `${checked.length} cells selected`;
+    }
+    
+    const selectAllCheckbox = document.getElementById(`selectAll-${custId}`);
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = checked.length === checkboxes.length && checkboxes.length > 0;
+        selectAllCheckbox.indeterminate = checked.length > 0 && checked.length < checkboxes.length;
+    }
+}
+
+function toggleAllCells(custId) {
+    const selectAllCheckbox = document.getElementById(`selectAll-${custId}`);
+    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    
+    updateSelectedCount(custId);
+}
+
+function selectAllCells(custId) {
+    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateSelectedCount(custId);
+}
+
+function clearAllCells(custId) {
+    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateSelectedCount(custId);
+}
 </script>
 
 <!-- DataTables JavaScript -->
@@ -1708,5 +2145,47 @@ $(function () {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+  <!-- Distance Modal -->
+  <div id="distanceModal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeDistanceModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cell Distances</h3>
+        <button class="modal-close" onclick="closeDistanceModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="distanceModalBody">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Loading distances...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nearest Cells Modal -->
+  <div id="nearestCellsModal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeNearestCellsModal()"></div>
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3>Assign Nearest Cells</h3>
+        <button class="modal-close" onclick="closeNearestCellsModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="nearestCellsModalBody">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Finding nearest cells...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
