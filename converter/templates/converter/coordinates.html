@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
+{% load humanize %}
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,6 +8,8 @@
 <title>HBB Customer Manager · Coordinates</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 <style>
 :root {
   --navy: #0b1f3a;
@@ -754,19 +757,86 @@ input[type="checkbox"] {
 ::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gray-300); }
 
-/* ─── RESPONSIVE ─── */
-@media (max-width: 1100px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+/* DataTables Pagination Fix */
+.dataTables_wrapper .dataTables_paginate {
+  margin-top: 20px;
+  text-align: center;
+  clear: both;
+  float: none !important;
 }
 
-@media (max-width: 820px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  :root { --sidebar-w: 52px; }
-  .brand-text, .nav-item span:not(.nav-icon-wrap), .sidebar-section-label, .status-badge span, .sidebar-bottom .status-badge { display: none; }
-  .nav-item { padding: 8px; justify-content: center; }
-  .sidebar-brand { justify-content: center; padding: 14px 8px; }
+.dataTables_wrapper .dataTables_info {
+  margin-top: 15px;
+  text-align: center;
+  clear: both;
+  float: none !important;
+  color: var(--gray);
+  font-size: 14px;
 }
-    </style>
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  margin: 0 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--navy-mid);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+  margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dt-buttons {
+  margin-bottom: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .main { margin-left: 0; }
+  .sidebar.active { transform: translateX(0); }
+  .menu-toggle { display: block; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .table-scroll { border-radius: 12px; }
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-card { padding: 16px; }
+  .btn-distance-check, .btn-suggest { font-size: 12px; padding: 8px 12px; }
+  .table-card { padding: 12px; }
+  .hbb th, .hbb td { padding: 8px 6px; font-size: 13px; }
+  .dataTables_wrapper .dataTables_info {
+    font-size: 12px;
+  }
+}
+</style>
 </head>
 <body>
 
@@ -853,22 +923,22 @@ input[type="checkbox"] {
         <div class="stats-grid">
             <div class="stat-card active" data-panel="all">
                 <div class="stat-label">All customers</div>
-                <div class="stat-num blue">{{ customers|length }}</div>
+                <div class="stat-num blue">{{ customers|length|intcomma }}</div>
                 <div class="stat-trend">All records</div>
             </div>
             <div class="stat-card" data-panel="found">
                 <div class="stat-label">Found in coords</div>
-                <div class="stat-num green">{{ found_customers|length }}</div>
+                <div class="stat-num green">{{ found_customers|length|intcomma }}</div>
                 <div class="stat-trend">With coordinates</div>
             </div>
             <div class="stat-card" data-panel="not-found">
                 <div class="stat-label">Not found</div>
-                <div class="stat-num red">{{ not_found_customers|length }}</div>
+                <div class="stat-num red">{{ not_found_customers|length|intcomma }}</div>
                 <div class="stat-trend">Missing coordinates</div>
             </div>
             <div class="stat-card" data-panel="unlocked">
                 <div class="stat-label">Unlocked</div>
-                <div class="stat-num amber">{{ unlocked_customers|length }}</div>
+                <div class="stat-num amber">{{ unlocked_customers|length|intcomma }}</div>
                 <div class="stat-trend">Needs cell assignment</div>
             </div>
         </div>
@@ -983,11 +1053,6 @@ input[type="checkbox"] {
                                         </svg>
                                         View distances
                                     </button>
-                                </td>
-                            </tr>
-                            <tr class="expand-row" style="display:none">
-                                <td colspan="8">
-                                    <div class="expand-inner" id="dist-inner-{{ row.customer.msisdn }}"></div>
                                 </td>
                             </tr>
                             {% empty %}
@@ -1116,11 +1181,6 @@ input[type="checkbox"] {
                                         </svg>
                                         Suggest nearest cells
                                     </button>
-                                </td>
-                            </tr>
-                            <tr class="expand-row" style="display:none">
-                                <td colspan="5">
-                                    <div class="expand-inner" id="suggestions-{{ row.customer.id }}"></div>
                                 </td>
                             </tr>
                             {% empty %}
@@ -1508,7 +1568,145 @@ $(function () {
         const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
         return v ? v[2] : '';
     }
+
+    // ── Number formatting function ───────────────────────────────
+    function formatNumberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // ── Initialize DataTables ─────────────────────────────────────
+    function initDataTables() {
+        // Initialize all tables with DataTables
+        const tables = ['tbl-all', 'tbl-found', 'tbl-not-found', 'tbl-unlocked'];
+        
+        tables.forEach(tableId => {
+            const table = $(`#${tableId}`);
+            if (table.length) {
+                // Check if table already has DataTables initialized
+                if ($.fn.dataTable.isDataTable(table)) {
+                    table.DataTable().destroy();
+                }
+                
+                table.DataTable({
+                    pageLength: 25,
+                    responsive: true,
+                    order: [[0, 'asc']],
+                    autoWidth: false,
+                    columnDefs: [
+                        {
+                            targets: 0, // ID column
+                            render: function(data, type, row) {
+                                if (type === 'display' && data) {
+                                    const numValue = parseInt(data);
+                                    if (!isNaN(numValue)) {
+                                        return `<span class="id-chip">${formatNumberWithCommas(numValue)}</span>`;
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            targets: 'tr.expand-row',
+                            searchable: false,
+                            orderable: false
+                        }
+                    ],
+                    initComplete: function(settings, json) {
+                        // Apply number formatting to all ID cells after table is initialized
+                        this.api().cells().nodes().to$().find('.id-chip').each(function() {
+                            const text = $(this).text();
+                            const numValue = parseInt(text);
+                            if (!isNaN(numValue)) {
+                                $(this).text(formatNumberWithCommas(numValue));
+                            }
+                        });
+                        
+                        // Update row count display with thousands separators
+                        const api = this.api();
+                        const totalCount = api.data().length;
+                        const countElement = document.getElementById(`count-${tableId.replace('tbl-', '')}`);
+                        if (countElement) {
+                            countElement.textContent = `${formatNumberWithCommas(totalCount)} customers`;
+                        }
+                        
+                        // Hide existing pagination elements
+                        const existingPag = document.getElementById(`pag-${tableId.replace('tbl-', '')}`);
+                        if (existingPag) {
+                            existingPag.style.display = 'none';
+                        }
+                    },
+                    language: {
+                        search: "Search customers:",
+                        lengthMenu: "Show _MENU_ customers",
+                        info: "Showing _START_ to _END_ of _TOTAL_ customers",
+                        paginate: {
+                            first: "First",
+                            last: "Last",
+                            next: "Next",
+                            previous: "Previous"
+                        },
+                        emptyTable: "No customers found",
+                        zeroRecords: "No matching customers found"
+                    },
+                    dom: '<"top"lfB>rt<"bottom"ip>',
+                    buttons: [
+                        {
+                            extend: 'excel',
+                            text: '<i class="fas fa-file-excel"></i> Excel',
+                            className: 'btn btn-sm btn-success',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'csv',
+                            text: '<i class="fas fa-file-csv"></i> CSV',
+                            className: 'btn btn-sm btn-primary',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'print',
+                            text: '<i class="fas fa-print"></i> Print',
+                            className: 'btn btn-sm btn-secondary'
+                        }
+                    ],
+                    initComplete: function(settings, json) {
+                        // Update row count display
+                        const api = this.api();
+                        const totalCount = api.data().length;
+                        const countElement = document.getElementById(`count-${tableId.replace('tbl-', '')}`);
+                        if (countElement) {
+                            countElement.textContent = `${totalCount} customers`;
+                        }
+                        
+                        // Hide existing pagination elements
+                        const existingPag = document.getElementById(`pag-${tableId.replace('tbl-', '')}`);
+                        if (existingPag) {
+                            existingPag.style.display = 'none';
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Initialize DataTables when DOM is ready
+    $(document).ready(function() {
+        initDataTables();
+    });
 });
 </script>
+
+<!-- DataTables JavaScript -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 </body>
 </html>

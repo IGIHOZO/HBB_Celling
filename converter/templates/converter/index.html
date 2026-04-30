@@ -1270,9 +1270,17 @@ function scrollToTree() {
   document.getElementById('treeSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/* ── XML ESCAPING ── */
+/* ── HELPERS ── */
 function escHtml(str) {
-  return (str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  return $('<div>').text(str).html();
+}
+
+function escHtmlRaw(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatNumberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -1397,8 +1405,8 @@ function renderLargeFileMode(xmlStr) {
 
   let html = `<div style="margin-bottom:12px; padding:8px 12px; background:var(--blue-pale); border-radius:var(--radius-sm); font-size:12px; color:var(--blue);">
     <i class="fas fa-info-circle"></i>
-    Large file mode — ${records.length} subscriber records found.
-    <span id="visibleCount" style="font-weight:600">${records.length} shown</span>
+    Large file mode — ${formatNumberWithCommas(records.length)} subscriber records found.
+    <span id="visibleCount" style="font-weight:600">${formatNumberWithCommas(records.length)} shown</span>
   </div>`;
 
   html += `<div id="recordList">`;
