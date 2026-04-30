@@ -1,509 +1,1514 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HBB Customers</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f7f9fc;
-            margin: 0;
-            padding: 24px;
-            color: #1f2937;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>HBB Customer Manager · Coordinates</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #0b1f3a;
+  --navy-light: #132c50;
+  --navy-mid: #1c3e6b;
+  --blue: #1a6ebd;
+  --blue-bright: #2589e8;
+  --blue-pale: #dbeeff;
+  --teal: #0f8a6e;
+  --teal-pale: #d4f5ed;
+  --amber: #b86e00;
+  --amber-pale: #fff3d6;
+  --red: #b91c1c;
+  --red-pale: #fee2e2;
+  --gray-50: #f7f9fc;
+  --gray-100: #eef1f6;
+  --gray-200: #dde3ed;
+  --gray-300: #bbc6d6;
+  --gray-400: #8898b3;
+  --gray-500: #5c6f8a;
+  --gray-700: #2d3f55;
+  --gray-900: #0d1b2e;
+  --sidebar-w: 230px;
+  --topbar-h: 58px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+  --transition: .15s ease;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ─── LAYOUT ─── */
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+  transition: width var(--transition);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 18px 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--navy-mid);
+  flex-shrink: 0;
+}
+
+.brand-text h1 {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -.2px;
+  white-space: nowrap;
+}
+
+.brand-text p {
+  font-size: 10.5px;
+  color: rgba(255,255,255,.4);
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.sidebar-section-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.28);
+  padding: 16px 16px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin: 1px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255,255,255,.55);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+  border-left: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.nav-item i {
+  width: 16px;
+  text-align: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  opacity: .7;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+}
+
+.nav-item.active {
+  background: rgba(37,137,232,.18);
+  color: #fff;
+  border-left-color: var(--blue-bright);
+  font-weight: 500;
+}
+
+.nav-item.active i {
+  opacity: 1;
+  color: var(--blue-bright);
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-family: var(--font-mono);
+}
+
+.nav-item.active .nav-badge {
+  background: var(--blue-bright);
+  color: #fff;
+  border-color: var(--blue-bright);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255,255,255,.07);
+  margin: 10px 16px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.04);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(34,197,94,.25);
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(34,197,94,.25); }
+  50% { box-shadow: 0 0 0 4px rgba(34,197,94,.1); }
+}
+
+/* ─── MAIN CONTENT ─── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── TOPBAR ─── */
+.topbar {
+  height: var(--topbar-h);
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-left h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-900);
+  letter-spacing: -.2px;
+}
+
+.topbar-left p {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 1px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ─── CONTENT AREA ─── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--gray-700);
+  transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+.btn:active { transform: scale(.98); }
+
+.btn-primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(26,110,189,.3);
+}
+
+.btn-primary:hover {
+  background: #155ea0;
+  border-color: #155ea0;
+}
+
+.btn-success {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.btn-success:hover { background: #0a6e58; }
+
+.btn-danger {
+  color: var(--red);
+  border-color: rgba(185,28,28,.2);
+}
+
+.btn-danger:hover {
+  background: var(--red-pale);
+  border-color: rgba(185,28,28,.3);
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 11.5px;
+}
+
+/* ─── STAT CARDS ─── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background var(--transition);
+}
+
+.stat-card:hover {
+  border-color: var(--gray-300);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.stat-card.active {
+  border-color: var(--blue-bright);
+  box-shadow: 0 0 0 3px rgba(37,137,232,.15);
+}
+
+.stat-card.active::after { background: var(--blue-bright); }
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--gray-400);
+  margin-bottom: 8px;
+}
+
+.stat-num {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+
+.stat-num.blue { color: var(--blue); }
+.stat-num.green { color: var(--teal); }
+.stat-num.red { color: var(--red); }
+.stat-num.amber { color: var(--amber); }
+
+.stat-trend {
+  font-size: 11px;
+  color: var(--gray-400);
+  margin-top: 6px;
+}
+
+/* ─── PANELS ─── */
+.panel { display: none; animation: fadeIn .18s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+/* ─── TOOLBAR ─── */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 340px;
+}
+
+.search-wrap i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--gray-50);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--gray-900);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.search-input::placeholder { color: var(--gray-300); }
+.search-input:focus {
+  border-color: var(--blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,110,189,.1);
+}
+
+.row-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--gray-400);
+  white-space: nowrap;
+}
+
+/* ─── TABLE ─── */
+.table-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.table-scroll { overflow-x: auto; }
+
+table.hbb {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+table.hbb thead th {
+  background: var(--gray-50);
+  padding: 10px 16px;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--gray-500);
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+  white-space: nowrap;
+  user-select: none;
+}
+
+table.hbb thead th.sortable {
+  cursor: pointer;
+}
+
+table.hbb thead th.sortable:hover { color: var(--gray-700); }
+table.hbb thead th .sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  opacity: 0.4;
+  font-size: 10px;
+}
+table.hbb thead th.sort-asc .sort-icon::after { content: ' ↑'; opacity: 1; }
+table.hbb thead th.sort-desc .sort-icon::after { content: ' ↓'; opacity: 1; }
+table.hbb thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: ' ↕'; }
+
+table.hbb tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: background .1s;
+}
+
+table.hbb tbody tr:last-child { border-bottom: none; }
+table.hbb tbody tr:hover > td { background: var(--blue-pale); }
+table.hbb tbody td {
+  padding: 11px 16px;
+  color: var(--gray-700);
+  white-space: nowrap;
+}
+
+table.hbb tbody td.muted { color: var(--gray-500); }
+table.hbb tbody td.dim { color: var(--gray-400); font-size: 12.5px; }
+table.hbb tbody tr.expand-row td { padding: 0; }
+table.hbb tbody tr.expand-row:hover > td { background: inherit; }
+
+        /* ── Expand panel ── */
+        .expand-inner {
+            padding: 16px 20px;
+            background: #fafbfc;
+            border-top: 1px solid var(--border-light);
+        }
+        .expand-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            margin-bottom: 10px;
+            letter-spacing: 0.02em;
         }
 
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
-            padding: 24px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .count {
-            font-size: 14px;
-            color: #4b5563;
-        }
-
-        .back-link {
-            text-decoration: none;
-            color: #2563eb;
-            font-size: 14px;
-        }
-
-        .table-wrap {
-            overflow-x: auto;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px;
-        }
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        .tab-btn {
-            border: 1px solid #d1d5db;
-            background: #fff;
-            color: #111827;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .tab-btn.active {
-            background: #2563eb;
-            color: #fff;
-            border-color: #2563eb;
-        }
-        .tab-panel {
-            display: none;
-        }
-        .tab-panel.active {
-            display: block;
-        }
-
-        table {
+        /* ── Mini table ── */
+        table.mini {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 12.5px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
         }
-
-        th, td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e5e7eb;
+        table.mini thead th {
+            background: var(--surface);
+            padding: 7px 12px;
+            font-weight: 500;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
             text-align: left;
             white-space: nowrap;
         }
+        table.mini tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text);
+            white-space: nowrap;
+        }
+        table.mini tbody tr:last-child td { border-bottom: none; }
+        table.mini tbody tr:hover td { background: var(--surface-secondary); }
 
-        th {
-            background: #f3f4f6;
-            font-weight: 600;
-        }
+/* ─── PILLS / BADGES ─── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
 
-        tr:hover {
-            background: #f9fafb;
-        }
+.pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
-        .dataTables_wrapper {
-            padding: 6px 2px;
-        }
-        .status-pill {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 12px;
-        }
-        .status-locked {
-            background: #dcfce7;
-            color: #166534;
-        }
-        .status-unlocked {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .status-notfound {
-            background: #e5e7eb;
-            color: #374151;
-        }
-        .hint {
-            margin-bottom: 10px;
-            color: #4b5563;
-            font-size: 13px;
-        }
-        .warn {
-            margin-bottom: 10px;
-            background: #fff7ed;
-            color: #9a3412;
-            border: 1px solid #fdba74;
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-size: 13px;
-        }
-        .btn {
-            border: none;
-            background: #2563eb;
-            color: #fff;
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .suggestions-box {
-            margin-top: 8px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px;
-            background: #f9fafb;
-            display: none;
-        }
-        .suggestion-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 6px 0;
-            font-size: 13px;
-        }
-        .inline-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .inline-row input {
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            padding: 6px 8px;
-            font-size: 12px;
-            min-width: 180px;
-        }
+.pill-locked {
+  background: var(--teal-pale);
+  color: var(--teal);
+  border: 1px solid rgba(15,138,110,.2);
+}
+
+.pill-locked::before { background: var(--teal); }
+
+.pill-unlocked {
+  background: var(--red-pale);
+  color: var(--red);
+  border: 1px solid rgba(185,28,28,.2);
+}
+
+.pill-unlocked::before { background: var(--red); }
+
+.pill-notfound {
+  background: var(--gray-100);
+  color: var(--gray-500);
+  border: 1px solid var(--gray-200);
+}
+
+.pill-notfound::before { background: var(--gray-400); }
+
+.id-chip {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  background: var(--blue-pale);
+  color: var(--blue);
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+
+/* ─── NOTICE BOXES ─── */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.notice-icon { flex-shrink: 0; margin-top: 1px; }
+
+.notice-warn {
+  background: var(--amber-pale);
+  border: 1px solid rgba(184,110,0,.2);
+  color: var(--amber);
+}
+
+.notice-info {
+  background: var(--blue-pale);
+  border: 1px solid rgba(26,110,189,.2);
+  color: var(--blue);
+}
+
+.notice-success {
+  background: var(--teal-pale);
+  border: 1px solid rgba(15,138,110,.2);
+  color: var(--teal);
+  display: none;
+}
+
+/* ─── CELL SUGGESTION UI ─── */
+.suggest-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-100);
+  flex-wrap: wrap;
+}
+
+.manual-input-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.manual-input-group input {
+  padding: 6px 10px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--gray-900);
+  background: var(--gray-50);
+  outline: none;
+  width: 200px;
+  transition: border-color var(--transition);
+}
+
+.manual-input-group input:focus {
+  border-color: var(--blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,110,189,.1);
+}
+
+.manual-input-group input::placeholder { color: var(--gray-300); }
+
+/* ─── CHECKBOX ─── */
+input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+/* ─── PAGINATION ─── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-top: 1px solid var(--gray-100);
+  background: #fff;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.pag-info { font-size: 12.5px; color: var(--gray-400); }
+.pag-controls { display: flex; gap: 4px; align-items: center; }
+
+.pag-btn {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.pag-btn:hover { background: var(--gray-50); color: var(--gray-700); }
+.pag-btn.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  font-weight: 500;
+}
+
+.pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pag-ellipsis { font-size: 13px; color: var(--gray-400); padding: 0 2px; }
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-500);
+}
+
+.empty-state i { margin-bottom: 12px; color: var(--gray-400); }
+.empty-state p { font-size: 14px; }
+
+/* ─── SPINNER ─── */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gray-200);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── SCROLLBAR STYLING ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-300); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 820px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  :root { --sidebar-w: 52px; }
+  .brand-text, .nav-item span:not(.nav-icon-wrap), .sidebar-section-label, .status-badge span, .sidebar-bottom .status-badge { display: none; }
+  .nav-item { padding: 8px; justify-content: center; }
+  .sidebar-brand { justify-content: center; padding: 14px 8px; }
+}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1>All HBB Customers</h1>
-                <div class="count">Total customers: {{ customers|length }}</div>
-                <div class="count">Loaded cells: {{ cell_towers_count }}</div>
-            </div>
-            <a class="back-link" href="/">Back to Dashboard</a>
-        </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="all">All ({{ customers|length }})</button>
-            <button class="tab-btn" data-tab="found">Found in customer_coordinates ({{ found_customers|length }})</button>
-            <button class="tab-btn" data-tab="not-found">Not Found in customer_coordinates ({{ not_found_customers|length }})</button>
-            <button class="tab-btn" data-tab="unlocked">Unlocked suggestions ({{ unlocked_customers|length }})</button>
-        </div>
+<div class="app">
 
-        <div id="panel-all" class="tab-panel active table-wrap">
-            <table id="hbb-customers-table-all">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>MSISDN</th>
-                        <th>Customer Name</th>
-                        <th>Product Name</th>
-                        <th>Price Plan Order Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in all_customers %}
-                    <tr>
-                        <td>{{ row.customer.id }}</td>
-                        <td>{{ row.customer.msisdn|default:"-" }}</td>
-                        <td>{{ row.customer.customer_name|default:"-" }}</td>
-                        <td>{{ row.customer.product_name|default:"-" }}</td>
-                        <td>{{ row.customer.price_plan_order_date|default:"-" }}</td>
-                        <td>
-                            {% if row.status == 'Locked' %}
-                                <span class="status-pill status-locked">Locked</span>
-                            {% elif row.status == 'UnLocked' %}
-                                <span class="status-pill status-unlocked">UnLocked</span>
-                            {% else %}
-                                <span class="status-pill status-notfound">{{ row.status }}</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6">No customers found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div id="panel-found" class="tab-panel table-wrap">
-            <table id="hbb-customers-table-found">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>MSISDN</th>
-                        <th>Customer Name</th>
-                        <th>Product Name</th>
-                        <th>Price Plan Order Date</th>
-                        <th>Lock Status</th>
-                        <th>Cells</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in found_customers %}
-                    <tr>
-                        <td>{{ row.customer.id }}</td>
-                        <td>{{ row.customer.msisdn|default:"-" }}</td>
-                        <td>{{ row.customer.customer_name|default:"-" }}</td>
-                        <td>{{ row.customer.product_name|default:"-" }}</td>
-                        <td>{{ row.customer.price_plan_order_date|default:"-" }}</td>
-                        <td>
-                            {% if row.is_locked %}
-                                <span class="status-pill status-locked">Locked</span>
-                            {% else %}
-                                <span class="status-pill status-unlocked">UnLocked</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ row.custom3|default:"-" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7">No customers found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div id="panel-not-found" class="tab-panel table-wrap">
-            <table id="hbb-customers-table-not-found">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>MSISDN</th>
-                        <th>Customer Name</th>
-                        <th>Product Name</th>
-                        <th>Price Plan Order Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for customer in not_found_customers %}
-                    <tr>
-                        <td>{{ customer.id }}</td>
-                        <td>{{ customer.msisdn|default:"-" }}</td>
-                        <td>{{ customer.customer_name|default:"-" }}</td>
-                        <td>{{ customer.product_name|default:"-" }}</td>
-                        <td>{{ customer.price_plan_order_date|default:"-" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5">No customers found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div id="panel-unlocked" class="tab-panel table-wrap">
-            {% if not has_cell_towers_table %}
-            <div class="warn">
-                `cells_info` table not found in database. Please ensure this table exists and has `lat/lon` populated.
-            </div>
-            {% endif %}
-            <div class="hint">
-                For unlocked customers, click "Suggest nearest cells" to fetch 10 nearest cell towers from registered coordinates, then select and save.
-            </div>
-            <table id="hbb-customers-table-unlocked">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>MSISDN</th>
-                        <th>Customer Name</th>
-                        <th>Coordinates</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in unlocked_customers %}
-                    <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
-                        <td>{{ row.customer.id }}</td>
-                        <td>{{ row.customer.msisdn|default:"-" }}</td>
-                        <td>{{ row.customer.customer_name|default:"-" }}</td>
-                        <td>
-                            {% if row.has_coordinates %}
-                                {{ row.latitude }}, {{ row.longitude }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                            <button
-                                class="btn btn-suggest"
-                                data-msisdn="{{ row.customer.msisdn|default:'' }}"
-                                {% if not row.has_coordinates or not row.customer.msisdn %}disabled{% endif %}
-                            >
-                                Suggest nearest cells
-                            </button>
-                            <div class="suggestions-box" id="suggestions-{{ row.customer.id }}"></div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5">No unlocked customers found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'KTRN_Logo.jpg' %}" alt="KTRN Logo" class="brand-logo">
+      <div class="brand-text">
+        <h1>HBB Manager</h1>
+        <p>Cell Management System</p>
+      </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#hbb-customers-table-all').DataTable({
-                pageLength: 25,
-                lengthMenu: [10, 25, 50, 100],
-                order: [[0, 'asc']]
-            });
-            $('#hbb-customers-table-found').DataTable({
-                pageLength: 25,
-                lengthMenu: [10, 25, 50, 100],
-                order: [[0, 'asc']]
-            });
-            $('#hbb-customers-table-not-found').DataTable({
-                pageLength: 25,
-                lengthMenu: [10, 25, 50, 100],
-                order: [[0, 'asc']]
-            });
-            $('#hbb-customers-table-unlocked').DataTable({
-                pageLength: 25,
-                lengthMenu: [10, 25, 50, 100],
-                order: [[0, 'asc']]
-            });
+    <div class="sidebar-section-label">Main</div>
 
-            $('.tab-btn').on('click', function () {
-                const tab = $(this).data('tab');
-                $('.tab-btn').removeClass('active');
-                $(this).addClass('active');
-                $('.tab-panel').removeClass('active');
-                if (tab === 'all') $('#panel-all').addClass('active');
-                if (tab === 'found') $('#panel-found').addClass('active');
-                if (tab === 'not-found') $('#panel-not-found').addClass('active');
-                if (tab === 'unlocked') $('#panel-unlocked').addClass('active');
-            });
+    <a href="/" class="nav-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/converter/" class="nav-item">
+      <i class="fas fa-exchange-alt"></i>
+      <span>Converter</span>
+    </a>
+    <a href="/coordinates/" class="nav-item active">
+      <i class="fas fa-map-marker-alt"></i>
+      <span>Coordinates</span>
+    </a>
 
-            $(document).on('click', '.btn-suggest', async function () {
-                const btn = $(this);
-                const msisdn = btn.data('msisdn');
-                const row = btn.closest('tr');
-                const box = row.find('.suggestions-box');
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Filters</div>
 
-                if (!msisdn) {
-                    alert('Missing MSISDN');
-                    return;
-                }
+    <div class="nav-item" data-panel="all">
+      <i class="fas fa-users"></i>
+      <span>All customers</span>
+      <span class="nav-badge" id="nb-all">{{ customers|length }}</span>
+    </div>
+    <div class="nav-item" data-panel="found">
+      <i class="fas fa-check-circle"></i>
+      <span>Found in coords</span>
+      <span class="nav-badge" id="nb-found">{{ found_customers|length }}</span>
+    </div>
+    <div class="nav-item" data-panel="not-found">
+      <i class="fas fa-times-circle"></i>
+      <span>Not found</span>
+      <span class="nav-badge" id="nb-not-found">{{ not_found_customers|length }}</span>
+    </div>
+    <div class="nav-item" data-panel="unlocked">
+      <i class="fas fa-unlock"></i>
+      <span>Unlocked</span>
+      <span class="nav-badge" id="nb-unlocked">{{ unlocked_customers|length }}</span>
+    </div>
 
-                btn.prop('disabled', true).text('Loading...');
-                box.hide().html('');
+    <div class="sidebar-bottom">
+      <div class="status-badge">
+        <div class="pulse-dot"></div>
+        <span>Full control · no limits</span>
+      </div>
+    </div>
+  </aside>
 
-                try {
-                    const res = await fetch(`/suggest-nearest-cells/?msisdn=${encodeURIComponent(msisdn)}`);
-                    const data = await res.json();
-                    if (!data.success) {
-                        alert(data.error || 'Failed to load suggestions');
-                        return;
-                    }
+  <!-- ─── MAIN ─── -->
+  <div class="main">
 
-                    let html = '';
-                    if (!data.suggested_cells.length) {
-                        html = '<div>No nearby cells found.</div>';
-                    } else {
-                        html += `<div style="margin-bottom:8px;"><strong>${data.customer.msisdn}</strong> - select cells to save</div>`;
-                        data.suggested_cells.forEach((cell, idx) => {
-                            const label = `${cell.cell_id} | ${cell.cell_name || '-'} | ${cell.region || '-'} | (${cell.latitude}, ${cell.longitude}) | ${cell.distance_km} km`;
-                            html += `
-                                <label class="suggestion-item">
-                                    <input type="checkbox" class="cell-checkbox" value="${cell.cell_id}" ${idx < 3 ? 'checked' : ''}>
-                                    <span>${label}</span>
-                                </label>
-                            `;
-                        });
-                        html += `
-                            <div class="inline-row">
-                                <input type="text" class="manual-cell-input" placeholder="Add manual cell id (optional)">
-                                <button class="btn btn-add-manual-cell" type="button">Add manual cell</button>
-                            </div>
-                        `;
-                        html += '<button class="btn btn-save-cells" style="margin-top:8px;">Save selected cells</button>';
-                    }
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>HBB Customer Coordinates</h2>
+        <p>Manage customer locations and cell tower assignments</p>
+      </div>
+      <div class="topbar-right">
+        <div class="spinner" id="spinnerGlobal"></div>
+        <button class="btn btn-sm btn-primary" onclick="exportData()">
+          <i class="fas fa-download"></i> Export
+        </button>
+      </div>
+    </header>
 
-                    box.html(html).show();
-                } catch (err) {
-                    alert(`Error: ${err.message}`);
-                } finally {
-                    btn.prop('disabled', false).text('Suggest nearest cells');
-                }
-            });
+    <!-- CONTENT -->
+    <div class="content">
 
-            $(document).on('click', '.btn-save-cells', async function () {
-                const box = $(this).closest('.suggestions-box');
-                const row = $(this).closest('tr');
-                const msisdn = row.data('msisdn');
-                const selected = box.find('.cell-checkbox:checked').map(function () {
-                    return $(this).val();
-                }).get();
+        <!-- Stat cards -->
+        <div class="stats-grid">
+            <div class="stat-card active" data-panel="all">
+                <div class="stat-label">All customers</div>
+                <div class="stat-num blue">{{ customers|length }}</div>
+                <div class="stat-trend">All records</div>
+            </div>
+            <div class="stat-card" data-panel="found">
+                <div class="stat-label">Found in coords</div>
+                <div class="stat-num green">{{ found_customers|length }}</div>
+                <div class="stat-trend">With coordinates</div>
+            </div>
+            <div class="stat-card" data-panel="not-found">
+                <div class="stat-label">Not found</div>
+                <div class="stat-num red">{{ not_found_customers|length }}</div>
+                <div class="stat-trend">Missing coordinates</div>
+            </div>
+            <div class="stat-card" data-panel="unlocked">
+                <div class="stat-label">Unlocked</div>
+                <div class="stat-num amber">{{ unlocked_customers|length }}</div>
+                <div class="stat-trend">Needs cell assignment</div>
+            </div>
+        </div>
 
-                if (!selected.length) {
-                    alert('Select at least one cell');
-                    return;
-                }
+        <!-- ═══ Panel: All ═══ -->
+        <div id="panel-all" class="panel active">
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input class="search-input" type="text" placeholder="Search by name, MSISDN, product…"
+                        oninput="filterTable('all', this.value)">
+                </div>
+                <span class="row-count" id="count-all"></span>
+            </div>
+            <div class="table-card">
+                <div class="table-scroll">
+                    <table class="hbb" id="tbl-all">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-col="0" data-key="id">ID <span class="sort-icon"></span></th>
+                                <th class="sortable" data-col="1" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                                <th class="sortable" data-col="2" data-key="name">Customer name <span class="sort-icon"></span></th>
+                                <th class="sortable" data-col="3" data-key="product">Product <span class="sort-icon"></span></th>
+                                <th class="sortable" data-col="4" data-key="date">Order date <span class="sort-icon"></span></th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-all">
+                            {% for row in all_customers %}
+                            <tr>
+                                <td><span class="id-chip">{{ row.customer.id }}</span></td>
+                                <td>{{ row.customer.msisdn|default:"-" }}</td>
+                                <td>{{ row.customer.customer_name|default:"-" }}</td>
+                                <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
+                                <td class="dim">{{ row.customer.price_plan_order_date|default:"-" }}</td>
+                                <td>
+                                    {% if row.status == 'Locked' %}
+                                        <span class="pill pill-locked">Locked</span>
+                                    {% elif row.status == 'UnLocked' %}
+                                        <span class="pill pill-unlocked">Unlocked</span>
+                                    {% else %}
+                                        <span class="pill pill-notfound">{{ row.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox" style="font-size: 32px;"></i>
+                                    <p>No customers found.</p>
+                                </div>
+                            </td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pag-all" style="display:none">
+                    <span class="pag-info" id="pag-info-all"></span>
+                    <div class="pag-controls" id="pag-ctrl-all"></div>
+                </div>
+            </div>
+        </div>
 
-                try {
-                    const res = await fetch('/save-customer-cells/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ msisdn: msisdn, selected_cells: selected })
-                    });
-                    const data = await res.json();
-                    if (!data.success) {
-                        alert(data.error || 'Failed to save cells');
-                        return;
-                    }
-                    alert(`Saved ${data.saved_cells.length} cells for ${msisdn}`);
-                } catch (err) {
-                    alert(`Error: ${err.message}`);
-                }
-            });
+        <!-- ═══ Panel: Found ═══ -->
+        <div id="panel-found" class="panel">
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input class="search-input" type="text" placeholder="Search…"
+                        oninput="filterTable('found', this.value)">
+                </div>
+                <span class="row-count" id="count-found"></span>
+            </div>
+            <div class="table-card">
+                <div class="table-scroll">
+                    <table class="hbb" id="tbl-found">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="date">Order date <span class="sort-icon"></span></th>
+                                <th>Lock status</th>
+                                <th>Cells</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-found">
+                            {% for row in found_customers %}
+                            <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
+                                <td><span class="id-chip">{{ row.customer.id }}</span></td>
+                                <td>{{ row.customer.msisdn|default:"-" }}</td>
+                                <td>{{ row.customer.customer_name|default:"-" }}</td>
+                                <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
+                                <td class="dim">{{ row.customer.price_plan_order_date|default:"-" }}</td>
+                                <td>
+                                    {% if row.is_locked %}
+                                        <span class="pill pill-locked">Locked</span>
+                                    {% else %}
+                                        <span class="pill pill-unlocked">Unlocked</span>
+                                    {% endif %}
+                                </td>
+                                <td class="dim">{{ row.custom3|default:"-" }}</td>
+                                <td>
+                                    <button
+                                        class="btn btn-distance-check"
+                                        data-msisdn="{{ row.customer.msisdn|default:'' }}"
+                                        {% if not row.is_locked %}disabled{% endif %}>
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                                        </svg>
+                                        View distances
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="expand-row" style="display:none">
+                                <td colspan="8">
+                                    <div class="expand-inner" id="dist-inner-{{ row.customer.msisdn }}"></div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="8">
+                                <div class="empty-state"><p>No customers found.</p></div>
+                            </td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pag-found" style="display:none">
+                    <span class="pag-info" id="pag-info-found"></span>
+                    <div class="pag-controls" id="pag-ctrl-found"></div>
+                </div>
+            </div>
+        </div>
 
-            $(document).on('click', '.btn-add-manual-cell', function () {
-                const box = $(this).closest('.suggestions-box');
-                const input = box.find('.manual-cell-input');
-                const manualCell = (input.val() || '').trim();
-                if (!manualCell) {
-                    alert('Enter a cell id first');
-                    return;
-                }
+        <!-- ═══ Panel: Not Found ═══ -->
+        <div id="panel-not-found" class="panel">
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input class="search-input" type="text" placeholder="Search…"
+                        oninput="filterTable('not-found', this.value)">
+                </div>
+                <span class="row-count" id="count-not-found"></span>
+            </div>
+            <div class="table-card">
+                <div class="table-scroll">
+                    <table class="hbb" id="tbl-not-found">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="date">Order date <span class="sort-icon"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-not-found">
+                            {% for customer in not_found_customers %}
+                            <tr>
+                                <td><span class="id-chip">{{ customer.id }}</span></td>
+                                <td>{{ customer.msisdn|default:"-" }}</td>
+                                <td>{{ customer.customer_name|default:"-" }}</td>
+                                <td class="muted">{{ customer.product_name|default:"-" }}</td>
+                                <td class="dim">{{ customer.price_plan_order_date|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5">
+                                <div class="empty-state"><p>No customers found.</p></div>
+                            </td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pag-not-found" style="display:none">
+                    <span class="pag-info" id="pag-info-not-found"></span>
+                    <div class="pag-controls" id="pag-ctrl-not-found"></div>
+                </div>
+            </div>
+        </div>
 
-                const alreadyExists = box.find('.cell-checkbox').filter(function () {
-                    return $(this).val() === manualCell;
-                }).length > 0;
+        <!-- ═══ Panel: Unlocked ═══ -->
+        <div id="panel-unlocked" class="panel">
+            {% if not has_cell_towers_table %}
+            <div class="notice notice-warn">
+                <svg class="notice-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div><strong>cells_info table not found.</strong> Please ensure this table exists with lat/lon populated.</div>
+            </div>
+            {% endif %}
+            <div class="notice notice-info">
+                <svg class="notice-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>For unlocked customers, click <strong>Suggest nearest cells</strong> to find the 10 closest cell towers, then select and save.</div>
+            </div>
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input class="search-input" type="text" placeholder="Search…"
+                        oninput="filterTable('unlocked', this.value)">
+                </div>
+                <span class="row-count" id="count-unlocked"></span>
+            </div>
+            <div class="table-card">
+                <div class="table-scroll">
+                    <table class="hbb" id="tbl-unlocked">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                                <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
+                                <th>Coordinates</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-unlocked">
+                            {% for row in unlocked_customers %}
+                            <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
+                                <td><span class="id-chip">{{ row.customer.id }}</span></td>
+                                <td>{{ row.customer.msisdn|default:"-" }}</td>
+                                <td>{{ row.customer.customer_name|default:"-" }}</td>
+                                <td class="dim">
+                                    {% if row.has_coordinates %}
+                                        {{ row.latitude }}, {{ row.longitude }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-primary btn-suggest"
+                                        data-msisdn="{{ row.customer.msisdn|default:'' }}"
+                                        data-customer-id="{{ row.customer.id }}"
+                                        {% if not row.has_coordinates or not row.customer.msisdn %}disabled{% endif %}>
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        Suggest nearest cells
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="expand-row" style="display:none">
+                                <td colspan="5">
+                                    <div class="expand-inner" id="suggestions-{{ row.customer.id }}"></div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5">
+                                <div class="empty-state"><p>No unlocked customers found.</p></div>
+                            </td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pag-unlocked" style="display:none">
+                    <span class="pag-info" id="pag-info-unlocked"></span>
+                    <div class="pag-controls" id="pag-ctrl-unlocked"></div>
+                </div>
+            </div>
+        </div>
 
-                if (alreadyExists) {
-                    alert('Cell already in selection list');
-                    return;
-                }
+    </main>
+</div>
 
-                const manualHtml = `
-                    <label class="suggestion-item">
-                        <input type="checkbox" class="cell-checkbox" value="${manualCell}" checked>
-                        <span>${manualCell} | manually added</span>
-                    </label>
-                `;
-                $(manualHtml).insertBefore(box.find('.inline-row'));
-                input.val('');
-            });
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(function () {
+
+    // ── Navigation ──────────────────────────────────────────────
+    function activatePanel(panelKey) {
+        $('.stat-card, .nav-item[data-panel]').removeClass('active');
+        $(`.stat-card[data-panel="${panelKey}"], .nav-item[data-panel="${panelKey}"]`).addClass('active');
+        $('.panel').removeClass('active');
+        $(`#panel-${panelKey}`).addClass('active');
+    }
+
+    $('.stat-card[data-panel], .nav-item[data-panel]').on('click', function () {
+        activatePanel($(this).data('panel'));
+    });
+
+    // ── Client-side search & sort (DataTables-free) ──────────────
+    // Each panel table supports live filtering + column sorting.
+    // The template already renders all rows server-side.
+    // We capture them once, then filter/sort/paginate in JS.
+
+    const PER_PAGE = 25;
+
+    const tableState = {};
+
+    function initTableSearch(panelKey, tableId) {
+        const $table = $(`#${tableId}`);
+        if (!$table.length) return;
+
+        // Capture all data rows (skip expand rows)
+        const $allRows = $table.find('tbody tr:not(.expand-row)');
+        if (!$allRows.length) return;
+
+        tableState[panelKey] = {
+            $table,
+            allRows: $allRows.toArray(),
+            filteredRows: $allRows.toArray(),
+            page: 1,
+            sortCol: -1,
+            sortDir: 'asc'
+        };
+
+        updateCount(panelKey);
+        renderPagination(panelKey);
+
+        // Sort headers
+        $table.find('thead th.sortable').on('click', function () {
+            const key = $(this).data('key');
+            const s = tableState[panelKey];
+            if (s.sortKey === key) {
+                s.sortDir = s.sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                s.sortKey = key;
+                s.sortDir = 'asc';
+            }
+            $table.find('thead th').removeClass('sort-asc sort-desc');
+            $(this).addClass(s.sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+            sortAndRender(panelKey);
         });
-    </script>
+    }
+
+    function filterTable(panelKey, q) {
+        const s = tableState[panelKey];
+        if (!s) return;
+        const lq = q.toLowerCase().trim();
+        s.filteredRows = lq
+            ? s.allRows.filter(tr => $(tr).text().toLowerCase().includes(lq))
+            : [...s.allRows];
+        s.page = 1;
+        sortAndRender(panelKey);
+    }
+
+    function sortAndRender(panelKey) {
+        const s = tableState[panelKey];
+        if (!s) return;
+        if (s.sortKey) {
+            const colMap = {};
+            s.$table.find('thead th.sortable').each(function (i) {
+                colMap[$(this).data('key')] = i;
+            });
+            const colIdx = colMap[s.sortKey];
+            s.filteredRows.sort((a, b) => {
+                const av = $(a).find('td').eq(colIdx).text().trim();
+                const bv = $(b).find('td').eq(colIdx).text().trim();
+                const an = parseFloat(av), bn = parseFloat(bv);
+                let cmp = (!isNaN(an) && !isNaN(bn)) ? an - bn : av.localeCompare(bv);
+                return s.sortDir === 'asc' ? cmp : -cmp;
+            });
+        }
+        updateCount(panelKey);
+        renderPage(panelKey);
+        renderPagination(panelKey);
+    }
+
+    function renderPage(panelKey) {
+        const s = tableState[panelKey];
+        if (!s) return;
+        const start = (s.page - 1) * PER_PAGE;
+        const visible = s.filteredRows.slice(start, start + PER_PAGE);
+        // Hide all, then show page slice
+        s.$table.find('tbody tr:not(.expand-row)').hide();
+        visible.forEach(tr => $(tr).show());
+    }
+
+    function updateCount(panelKey) {
+        const s = tableState[panelKey];
+        if (!s) return;
+        const total = s.filteredRows.length;
+        const start = Math.min((s.page - 1) * PER_PAGE + 1, total);
+        const end = Math.min(s.page * PER_PAGE, total);
+        $(`#count-${panelKey}`).text(total ? `${start}–${end} of ${total}` : '0 results');
+        // Pagination bar
+        const $pag = $(`#pag-${panelKey}`);
+        if (total > PER_PAGE) { $pag.show(); } else { $pag.hide(); }
+        // pag-info
+        $(`#pag-info-${panelKey}`).text(`Showing ${start}–${end} of ${total} rows`);
+    }
+
+    function renderPagination(panelKey) {
+        const s = tableState[panelKey];
+        if (!s) return;
+        const total = Math.ceil(s.filteredRows.length / PER_PAGE);
+        const cur = s.page;
+        const $ctrl = $(`#pag-ctrl-${panelKey}`);
+        let html = `<button class="pag-btn" onclick="goPage('${panelKey}',${cur-1})" ${cur<=1?'disabled':''}>‹</button>`;
+        const lo = Math.max(1, cur - 2), hi = Math.min(total, cur + 2);
+        if (lo > 1) html += `<button class="pag-btn" onclick="goPage('${panelKey}',1)">1</button>${lo>2?'<span class="pag-ellipsis">…</span>':''}`;
+        for (let p = lo; p <= hi; p++) html += `<button class="pag-btn ${p===cur?'active':''}" onclick="goPage('${panelKey}',${p})">${p}</button>`;
+        if (hi < total) html += `${hi<total-1?'<span class="pag-ellipsis">…</span>':''}<button class="pag-btn" onclick="goPage('${panelKey}',${total})">${total}</button>`;
+        html += `<button class="pag-btn" onclick="goPage('${panelKey}',${cur+1})" ${cur>=total?'disabled':''}>›</button>`;
+        $ctrl.html(html);
+    }
+
+    window.goPage = function (panelKey, p) {
+        const s = tableState[panelKey];
+        if (!s) return;
+        const total = Math.ceil(s.filteredRows.length / PER_PAGE);
+        if (p < 1 || p > total) return;
+        s.page = p;
+        renderPage(panelKey);
+        updateCount(panelKey);
+        renderPagination(panelKey);
+    };
+
+    window.filterTable = filterTable;
+
+    // Init all tables
+    initTableSearch('all', 'tbl-all');
+    initTableSearch('found', 'tbl-found');
+    initTableSearch('not-found', 'tbl-not-found');
+    initTableSearch('unlocked', 'tbl-unlocked');
+
+    // ── Distance check (Found panel) ────────────────────────────
+    $(document).on('click', '.btn-distance-check', async function () {
+        const btn = $(this);
+        const msisdn = btn.data('msisdn');
+        const expandRow = btn.closest('tr').next('.expand-row');
+        const inner = $(`#dist-inner-${msisdn}`);
+
+        if (expandRow.is(':visible')) {
+            expandRow.hide();
+            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg> View distances`);
+            return;
+        }
+
+        btn.prop('disabled', true).html(`<span class="spinner"></span> Loading…`);
+        inner.html('');
+
+        try {
+            const res = await fetch(`/registered-cell-distances/?msisdn=${encodeURIComponent(msisdn)}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                showNotice(inner, 'warn', data.error || 'Failed to load distances');
+                return;
+            }
+
+            if (!data.distances.length) {
+                showNotice(inner, 'info', 'No registered cells with coordinates found for this customer.');
+            } else {
+                let html = `<div class="expand-label">${escHtml(data.customer.msisdn)} — distances to registered cells</div>`;
+                html += `<div style="overflow-x:auto"><table class="mini">
+                    <thead><tr>
+                        <th>Cell ID</th><th>Name</th><th>Coordinates</th><th>Region</th><th>Distance</th>
+                    </tr></thead>
+                    <tbody>`;
+                data.distances.forEach(d => {
+                    html += `<tr>
+                        <td><span class="id-chip">${escHtml(d.cell_id)}</span></td>
+                        <td>${escHtml(d.cell_name || '—')}</td>
+                        <td class="muted">${escHtml(String(d.latitude))}, ${escHtml(String(d.longitude))}</td>
+                        <td class="muted">${escHtml(d.region || '—')}</td>
+                        <td><strong>${escHtml(String(d.distance_km))} km</strong></td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+                if (data.not_found_cells && data.not_found_cells.length) {
+                    html += `<div class="notice notice-warn" style="margin-top:10px;display:flex">
+                        <svg class="notice-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        Not found in cells_info: ${escHtml(data.not_found_cells.join(', '))}</div>`;
+                }
+                inner.html(html);
+            }
+
+            expandRow.show();
+            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg> Hide`);
+        } catch (err) {
+            showNotice(inner, 'warn', `Error: ${err.message}`);
+            expandRow.show();
+        } finally {
+            btn.prop('disabled', false);
+        }
+    });
+
+    // ── Suggest nearest cells (Unlocked panel) ──────────────────
+    $(document).on('click', '.btn-suggest', async function () {
+        const btn = $(this);
+        const msisdn = btn.data('msisdn');
+        const custId = btn.data('customer-id');
+        const expandRow = btn.closest('tr').next('.expand-row');
+        const inner = $(`#suggestions-${custId}`);
+
+        if (expandRow.is(':visible')) {
+            expandRow.hide();
+            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Suggest nearest cells`);
+            return;
+        }
+
+        btn.prop('disabled', true).html(`<span class="spinner"></span> Loading…`);
+        inner.html('');
+
+        try {
+            const res = await fetch(`/suggest-nearest-cells/?msisdn=${encodeURIComponent(msisdn)}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                showNotice(inner, 'warn', data.error || 'Failed to load suggestions');
+                expandRow.show();
+                return;
+            }
+
+            if (!data.suggested_cells.length) {
+                showNotice(inner, 'info', 'No nearby cells found for this customer.');
+                expandRow.show();
+                return;
+            }
+
+            let html = `<div class="expand-label">${escHtml(data.customer.msisdn)} — select cells to assign</div>`;
+            html += `<div style="overflow-x:auto"><table class="mini" id="cell-tbl-${custId}">
+                <thead><tr>
+                    <th style="width:36px"></th>
+                    <th>Cell ID</th><th>Name</th><th>Region</th><th>Coordinates</th><th>Distance</th>
+                </tr></thead>
+                <tbody>`;
+            data.suggested_cells.forEach((cell, idx) => {
+                html += `<tr>
+                    <td style="text-align:center"><input type="checkbox" class="cell-checkbox" value="${escHtml(cell.cell_id)}" ${idx < 3 ? 'checked' : ''}></td>
+                    <td><span class="id-chip">${escHtml(cell.cell_id)}</span></td>
+                    <td>${escHtml(cell.cell_name || '—')}</td>
+                    <td class="muted">${escHtml(cell.region || '—')}</td>
+                    <td class="muted" style="font-size:12px">${escHtml(String(cell.latitude))}, ${escHtml(String(cell.longitude))}</td>
+                    <td><strong>${escHtml(String(cell.distance_km))} km</strong></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div>`;
+
+            html += `
+                <div class="suggest-actions">
+                    <div class="manual-input-group">
+                        <input type="text" placeholder="Add manual cell ID (optional)" id="manual-input-${custId}">
+                        <button class="btn" onclick="addManualCell('${custId}')">
+                            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add cell
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveCells('${msisdn}','${custId}')" id="save-btn-${custId}" style="margin-left:auto">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Save selected cells
+                    </button>
+                </div>
+                <div class="notice notice-success" id="save-ok-${custId}"></div>
+            `;
+
+            inner.html(html);
+            expandRow.show();
+            btn.html(`<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg> Hide`);
+        } catch (err) {
+            showNotice(inner, 'warn', `Error: ${err.message}`);
+            expandRow.show();
+        } finally {
+            btn.prop('disabled', false);
+        }
+    });
+
+    window.addManualCell = function (custId) {
+        const input = document.getElementById(`manual-input-${custId}`);
+        const val = (input.value || '').trim();
+        if (!val) { alert('Enter a cell ID first.'); return; }
+        const tbody = document.querySelector(`#cell-tbl-${custId} tbody`);
+        const exists = [...tbody.querySelectorAll('.cell-checkbox')].some(cb => cb.value === val);
+        if (exists) { alert('This cell ID is already in the list.'); return; }
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align:center"><input type="checkbox" class="cell-checkbox" value="${escHtmlRaw(val)}" checked></td>
+            <td><span class="id-chip">${escHtmlRaw(val)}</span></td>
+            <td style="color:var(--text-tertiary);font-style:italic">Manually added</td>
+            <td>—</td><td>—</td><td>—</td>`;
+        tbody.appendChild(tr);
+        input.value = '';
+        input.focus();
+    };
+
+    window.saveCells = async function (msisdn, custId) {
+        const cbs = document.querySelectorAll(`#cell-tbl-${custId} .cell-checkbox:checked`);
+        const selected = [...cbs].map(cb => cb.value);
+        if (!selected.length) { alert('Please select at least one cell.'); return; }
+
+        const btn = document.getElementById(`save-btn-${custId}`);
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner"></span> Saving…`;
+
+        try {
+            const res = await fetch('/save-customer-cells/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ msisdn, selected_cells: selected })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                alert(data.error || 'Failed to save cells.');
+                return;
+            }
+            const ok = document.getElementById(`save-ok-${custId}`);
+            ok.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Saved ${data.saved_cells.length} cell${data.saved_cells.length !== 1 ? 's' : ''}: ${escHtmlRaw(data.saved_cells.join(', '))}`;
+            ok.style.display = 'flex';
+            btn.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Saved`;
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+            btn.disabled = false;
+            btn.innerHTML = `Save selected cells`;
+        }
+    };
+
+    // ── Helpers ─────────────────────────────────────────────────
+    function showNotice(container, type, msg) {
+        const icons = {
+            warn: `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+            info: `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+        };
+        container.html(`<div class="notice notice-${type}" style="display:flex">${icons[type] || ''}<div>${escHtmlRaw(msg)}</div></div>`);
+    }
+
+    function escHtml(str) {
+        return $('<div>').text(str).html();
+    }
+    function escHtmlRaw(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? v[2] : '';
+    }
+});
+</script>
 </body>
 </html>

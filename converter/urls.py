@@ -15,5 +15,6 @@ urlpatterns = [
     path('check-cells/', views.check_customer_cells, name='check_customer_cells'),
     path('suggest-nearest-cells/', views.suggest_nearest_cells, name='suggest_nearest_cells'),
     path('save-customer-cells/', views.save_customer_cells, name='save_customer_cells'),
+    path('registered-cell-distances/', views.registered_cell_distances, name='registered_cell_distances'),
     path('coordinates/', views.coordinates_page, name='coordinates_page'),
 ]

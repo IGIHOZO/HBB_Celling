@@ -2,1148 +2,1474 @@
 {% load static %}
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>HBB Customer Manager · Cell Management System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>HBB Customer Manager · Cell Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #0b1f3a;
+  --navy-light: #132c50;
+  --navy-mid: #1c3e6b;
+  --blue: #1a6ebd;
+  --blue-bright: #2589e8;
+  --blue-pale: #dbeeff;
+  --teal: #0f8a6e;
+  --teal-pale: #d4f5ed;
+  --amber: #b86e00;
+  --amber-pale: #fff3d6;
+  --red: #b91c1c;
+  --red-pale: #fee2e2;
+  --gray-50: #f7f9fc;
+  --gray-100: #eef1f6;
+  --gray-200: #dde3ed;
+  --gray-300: #bbc6d6;
+  --gray-400: #8898b3;
+  --gray-500: #5c6f8a;
+  --gray-700: #2d3f55;
+  --gray-900: #0d1b2e;
+  --sidebar-w: 230px;
+  --topbar-h: 58px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+  --transition: .15s ease;
+}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f4f7fc;
-            padding: 28px 24px;
-            color: #0a2540;
-        }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        .app-container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  font-size: 14px;
+  line-height: 1.5;
+}
 
-        /* header premium */
-        .hero-panel {
-            background: linear-gradient(115deg, #ffffff 0%, #f8fafd 100%);
-            border-radius: 2rem;
-            padding: 24px 32px;
-            margin-bottom: 32px;
-            box-shadow: 0 8px 18px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #e2edf7;
-        }
+/* ─── LAYOUT ─── */
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
 
-        .brand-area {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+  transition: width var(--transition);
+}
 
-        .logo-image {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px -4px rgba(0,0,0,0.2);
-            object-fit: contain;
-        }
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 18px 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
 
-        .title h1 {
-            font-size: 1.9rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1e3c72, #2b6a9f);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: -0.3px;
-        }
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--navy-mid);
+  flex-shrink: 0;
+}
 
-        .title p {
-            font-size: 0.85rem;
-            color: #5b6f82;
-            margin-top: 5px;
-        }
+.brand-text h1 {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -.2px;
+  white-space: nowrap;
+}
 
-        .badge-unlimited {
-            background: #eef3fc;
-            border-radius: 60px;
-            padding: 6px 18px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #1e6f9f;
-            gap: 8px;
-            display: flex;
-            align-items: center;
-        }
+.brand-text p {
+  font-size: 10.5px;
+  color: rgba(255,255,255,.4);
+  white-space: nowrap;
+  margin-top: 1px;
+}
 
-        /* upload – unlimited style */
-        .upload-zone {
-            background: white;
-            border-radius: 2rem;
-            border: 1.5px dashed #b9d0e8;
-            padding: 28px 32px;
-            text-align: center;
-            margin-bottom: 28px;
-            transition: all 0.2s;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
+.sidebar-section-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.28);
+  padding: 16px 16px 6px;
+}
 
-        .upload-zone:hover {
-            border-color: #3b82f6;
-            background: #fafcff;
-        }
-        .upload-zone.dragover {
-            border-color: #10b981;
-            background: #f0fdf4;
-        }
-        .upload-icon-big {
-            font-size: 44px;
-            color: #3b82f6;
-            margin-bottom: 12px;
-        }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin: 1px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255,255,255,.55);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+  border-left: 2px solid transparent;
+  white-space: nowrap;
+}
 
-        /* action bar */
-        .action-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 32px;
-            align-items: center;
-        }
+.nav-item i {
+  width: 16px;
+  text-align: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  opacity: .7;
+}
 
-        .btn {
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            border: 1px solid #dce5ef;
-        }
+.nav-item:hover {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+}
 
-        .btn-primary {
-            background: #1e5a8a;
-            border: none;
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .btn-primary:hover {
-            background: #0f4168;
-            transform: translateY(-1px);
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #bfd6e8;
-        }
-        .btn-outline:hover {
-            background: #eef3fc;
-        }
-        .btn-success {
-            background: #2c7a4d;
-            color: white;
-            border: none;
-        }
+.nav-item.active {
+  background: rgba(37,137,232,.18);
+  color: #fff;
+  border-left-color: var(--blue-bright);
+  font-weight: 500;
+}
 
-        /* dual panel no limit */
-        .dual-editor {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 28px;
-            margin-bottom: 32px;
-        }
+.nav-item.active i {
+  opacity: 1;
+  color: var(--blue-bright);
+}
 
-        .card {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px -8px rgba(0,0,0,0.05);
-            border: 1px solid #e6edf4;
-            display: flex;
-            flex-direction: column;
-        }
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255,255,255,.07);
+  margin: 10px 16px;
+}
 
-        .card-header {
-            padding: 18px 24px;
-            background: #fefeff;
-            border-bottom: 1px solid #eef3fa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
 
-        .card-header h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.04);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+}
 
-        textarea {
-            width: 100%;
-            min-height: 480px;
-            padding: 22px;
-            border: none;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 13.5px;
-            line-height: 1.5;
-            resize: vertical;
-            background: #ffffff;
-            outline: none;
-            color: #0a2540;
-        }
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(34,197,94,.25);
+  animation: pulse 2s ease infinite;
+}
 
-        textarea:focus {
-            background: #fefdf9;
-        }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(34,197,94,.25); }
+  50% { box-shadow: 0 0 0 4px rgba(34,197,94,.1); }
+}
 
-        /* CSV Table Styles */
-        .csv-table {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
+/* ─── MAIN CONTENT ─── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-        .csv-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #495057;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
+/* ─── TOPBAR ─── */
+.topbar {
+  height: var(--topbar-h);
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
 
-        .csv-table td {
-            color: #212529;
-        }
+.topbar-left h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-900);
+  letter-spacing: -.2px;
+}
 
-        .csv-table tr:hover {
-            background-color: #f1f3f4 !important;
-        }
+.topbar-left p {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 1px;
+}
 
-        #csvTableWrapper {
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-        }
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-        /* HUMAN READABLE - BATTERY VIEW (clear, structured, unlimited) */
-        .human-battery {
-            background: white;
-            border-radius: 28px;
-            border: 1px solid #e6edf4;
-            margin-top: 8px;
-            overflow: hidden;
-        }
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gray-200);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  display: none;
+}
 
-        .battery-header {
-            padding: 16px 28px;
-            background: #fafdff;
-            border-bottom: 1px solid #e9f0f6;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-        }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-        .badge-clear {
-            background: #e1f0fa;
-            padding: 5px 15px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--gray-700);
+  transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
+  white-space: nowrap;
+  text-decoration: none;
+}
 
-        .tree-view-container {
-            max-height: 550px;
-            overflow-y: auto;
-            padding: 22px 28px;
-            background: #ffffff;
-            font-family: 'SF Mono', 'JetBrains Mono', monospace;
-            font-size: 13px;
-            line-height: 1.55;
-        }
+.btn:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
 
-        /* tree styling = crystal clear */
-        .tree-line {
-            white-space: pre-wrap;
-            margin: 3px 0;
-        }
-        .elem-tag { color: #b22234; font-weight: 600; }
-        .attr-name { color: #2c6e9e; }
-        .attr-val { color: #116b47; }
-        .text-node { color: #2c3e50; background: #f8fafc; padding: 0 2px; border-radius: 6px; }
-        .comment-node { color: #6c8da3; font-style: italic; }
-        .expand-clear {
-            display: inline-block;
-            width: 20px;
-            cursor: pointer;
-            user-select: none;
-            font-weight: bold;
-            color: #2c6e9e;
-        }
-        .children-wrap {
-            margin-left: 28px;
-            border-left: 1px solid #cbdde9;
-            padding-left: 12px;
-        }
-        .placeholder-clean {
-            text-align: center;
-            padding: 60px 20px;
-            color: #8ba0b2;
-        }
-        .info-note {
-            background: #f0f7fe;
-            border-radius: 20px;
-            padding: 8px 16px;
-            font-size: 0.7rem;
-        }
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 0.7rem;
-            color: #7a8e9e;
-        }
-        @media (max-width: 1200px) {
-            .dual-editor { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 900px) {
-            .dual-editor { grid-template-columns: 1fr; }
-            body { padding: 16px; }
-        }
-        .spinner-sm {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #cbd5e1;
-            border-top-color: #1e5a8a;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: inline-block;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .alert-toast {
-            padding: 12px 22px;
-            border-radius: 40px;
-            margin-bottom: 16px;
-            font-size: 0.85rem;
-            background: white;
-            border-left: 4px solid;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-        }
-        .alert-success { border-left-color: #2c7a4d; background: #eef6ef; color: #145c33; }
-        .alert-error { border-left-color: #c2412c; background: #fff0ee; color: #a51b0e; }
-    </style>
+.btn:active { transform: scale(.98); }
+
+.btn-primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(26,110,189,.3);
+}
+
+.btn-primary:hover {
+  background: #155ea0;
+  border-color: #155ea0;
+}
+
+.btn-success {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.btn-success:hover { background: #0a6e58; }
+
+.btn-danger {
+  color: var(--red);
+  border-color: rgba(185,28,28,.2);
+}
+
+.btn-danger:hover {
+  background: var(--red-pale);
+  border-color: rgba(185,28,28,.3);
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 11.5px;
+}
+
+/* ─── CONTENT AREA ─── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ─── TOAST NOTIFICATIONS ─── */
+.toast-stack {
+  position: fixed;
+  top: 14px;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 500;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-md);
+  animation: slideIn .2s ease;
+  pointer-events: all;
+  max-width: 320px;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.toast.success { border-left: 3px solid var(--teal); color: var(--teal); background: var(--teal-pale); }
+.toast.error { border-left: 3px solid var(--red); color: var(--red); background: var(--red-pale); }
+.toast.info { border-left: 3px solid var(--blue); color: var(--blue); background: var(--blue-pale); }
+
+/* ─── UPLOAD ZONE ─── */
+.upload-zone {
+  background: #fff;
+  border: 1.5px dashed var(--gray-300);
+  border-radius: var(--radius);
+  padding: 26px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--blue-bright);
+  background: #f0f7ff;
+}
+
+.upload-zone .upload-icon {
+  font-size: 32px;
+  color: var(--blue);
+  margin-bottom: 10px;
+}
+
+.upload-zone h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.upload-zone p {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-bottom: 14px;
+}
+
+/* ─── TOOLBAR ─── */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--gray-200);
+  margin: 0 2px;
+}
+
+/* ─── PANELS GRID ─── */
+.panels-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* ─── CARD / PANEL ─── */
+.card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  background: var(--gray-50);
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.card-title .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-blue { background: var(--blue); }
+.dot-teal { background: var(--teal); }
+.dot-amber { background: var(--amber); }
+
+.card-badge {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--gray-400);
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-family: var(--font-mono);
+}
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* ─── TEXTAREA ─── */
+textarea {
+  width: 100%;
+  min-height: 220px;
+  padding: 14px 16px;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  resize: vertical;
+  background: #fff;
+  color: var(--gray-900);
+  outline: none;
+  flex: 1;
+}
+
+textarea:focus {
+  background: #fffef8;
+}
+
+textarea::placeholder {
+  color: var(--gray-300);
+  font-style: italic;
+}
+
+textarea[readonly] {
+  background: var(--gray-50);
+  color: var(--gray-700);
+}
+
+/* ─── CSV TABS ─── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+}
+
+.tab-btn {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  color: var(--gray-500);
+  transition: background var(--transition), color var(--transition);
+}
+
+.tab-btn:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.tab-btn:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-left: none; }
+
+.tab-btn.active {
+  background: #fff;
+  color: var(--gray-900);
+  font-weight: 600;
+  border-color: var(--gray-300);
+}
+
+#csvTableWrapper {
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  background: var(--gray-50);
+  color: var(--gray-500);
+  font-weight: 600;
+  text-align: left;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--gray-200);
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table tr:hover td {
+  background: var(--blue-pale);
+}
+
+.data-table tr:nth-child(even) td {
+  background: var(--gray-50);
+}
+
+.data-table tr:nth-child(even):hover td {
+  background: var(--blue-pale);
+}
+
+/* ─── TREE VIEW ─── */
+.tree-panel {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.tree-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  background: var(--gray-50);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tree-panel-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gray-700);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tree-actions {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* search bar in tree */
+.tree-search {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  background: #fff;
+}
+
+.tree-search input {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  outline: none;
+  background: var(--gray-50);
+  color: var(--gray-900);
+  transition: border-color var(--transition);
+}
+
+.tree-search input:focus {
+  border-color: var(--blue);
+  background: #fff;
+}
+
+.tree-body {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.tree-placeholder {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-400);
+  font-size: 12.5px;
+  font-family: var(--font-sans);
+}
+
+.tree-placeholder i {
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: block;
+  opacity: .4;
+}
+
+/* tree node styles */
+.tree-line { margin: 2px 0; display: flex; align-items: flex-start; gap: 2px; }
+
+.tree-toggle {
+  cursor: pointer;
+  user-select: none;
+  color: var(--blue);
+  font-weight: 600;
+  min-width: 14px;
+  display: inline-block;
+  line-height: 1;
+  padding-top: 2px;
+  transition: transform .1s;
+}
+
+.tree-toggle:hover { color: var(--blue-bright); }
+.tree-neutral { color: var(--gray-300); min-width: 14px; display: inline-block; text-align: center; }
+.elem-tag { color: #b91c1c; font-weight: 600; }
+.attr-name { color: #185FA5; }
+.attr-val { color: #166534; }
+.text-node { color: var(--gray-700); background: var(--gray-100); border-radius: 3px; padding: 0 3px; }
+.comment-node { color: var(--gray-400); font-style: italic; }
+
+.children-wrap {
+  margin-left: 22px;
+  border-left: 1px solid var(--gray-200);
+  padding-left: 10px;
+}
+
+/* record card for large file mode */
+.record-card {
+  margin: 4px 0;
+  border: 1px solid var(--gray-100);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.record-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--gray-50);
+  cursor: pointer;
+  transition: background var(--transition);
+  user-select: none;
+}
+
+.record-card-header:hover { background: var(--blue-pale); }
+
+.record-card-body {
+  display: none;
+  padding: 10px 12px;
+  background: #fff;
+  max-height: 240px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  color: var(--gray-700);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ─── SCROLLBAR STYLING ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-300); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1100px) {
+  .panels-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 820px) {
+  .panels-grid { grid-template-columns: 1fr; }
+  :root { --sidebar-w: 52px; }
+  .brand-text, .nav-item span:not(.nav-icon-wrap), .sidebar-section-label, .status-badge span, .sidebar-bottom .status-badge { display: none; }
+  .nav-item { padding: 8px; justify-content: center; }
+  .sidebar-brand { justify-content: center; padding: 14px 8px; }
+}
+</style>
 </head>
 <body>
-<div class="app-container">
-    <!-- header unlimited -->
-    <div class="hero-panel">
-        <div class="brand-area">
-            <img src="{% static 'KTRN_Logo.jpg' %}" alt="KTRN Logo" class="logo-image">
-            <div class="title">
-                <h1>HBB Customer Manager</h1>
-                <p>Manage customer cells • dispensed, locked, unlocked states • EXML processing</p>
-            </div>
-        </div>
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <nav style="display: flex; gap: 12px;">
-                <a href="/" style="padding: 8px 16px; background: #1e5a8a; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-home"></i> Home</a>
-                <a href="/converter/" style="padding: 8px 16px; background: #1e5a8a; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-exchange-alt"></i> Converter</a>
-                <a href="/coordinates/" style="padding: 8px 16px; background: #6c757d; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-map-marker-alt"></i> Coordinates</a>
-            </nav>
-            <div class="badge-unlimited"><i class="fas fa-mobile-alt"></i> Cell Management · Full Control</div>
-        </div>
+
+<div class="app">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'KTRN_Logo.jpg' %}" alt="KTRN Logo" class="brand-logo">
+      <div class="brand-text">
+        <h1>HBB Manager</h1>
+        <p>Cell Management System</p>
+      </div>
     </div>
 
-    <!-- drag & drop (no size restrictions frontend, backend will handle large but we remove client limit message) -->
-    <div class="upload-zone" id="uploadArea">
-        <div class="upload-icon-big"><i class="fas fa-cloud-upload-alt"></i></div>
+    <div class="sidebar-section-label">Main</div>
+
+    <a href="/" class="nav-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/converter/" class="nav-item active">
+      <i class="fas fa-exchange-alt"></i>
+      <span>Converter</span>
+    </a>
+    <a href="/coordinates/" class="nav-item">
+      <i class="fas fa-map-marker-alt"></i>
+      <span>Coordinates</span>
+    </a>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Tools</div>
+
+    <div class="nav-item" id="navUpload" onclick="document.getElementById('fileSelector').click()">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <span>Upload EXML</span>
+    </div>
+    <div class="nav-item" id="navExport" onclick="downloadCsv()">
+      <i class="fas fa-file-export"></i>
+      <span>Export CSV</span>
+    </div>
+    <div class="nav-item" id="navCells" onclick="scrollToTree()">
+      <i class="fas fa-th-large"></i>
+      <span>Cell States</span>
+    </div>
+    <div class="nav-item" id="navClear" onclick="clearAll()">
+      <i class="fas fa-trash-alt"></i>
+      <span>Clear All</span>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="status-badge">
+        <div class="pulse-dot"></div>
+        <span>Full control · no limits</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>EXML Customer Data Converter</h2>
+        <p>Import, convert and manage HBB subscriber records and cell states</p>
+      </div>
+      <div class="topbar-right">
+        <div class="spinner" id="spinnerGlobal"></div>
+        <button class="btn btn-sm btn-danger" onclick="clearAll()">
+          <i class="fas fa-trash-alt"></i> Clear
+        </button>
+        <button class="btn btn-sm" onclick="copyXml()">
+          <i class="fas fa-copy"></i> Copy XML
+        </button>
+        <button class="btn btn-sm btn-primary" onclick="runConversion()">
+          <i class="fas fa-arrow-right-arrow-left"></i> Convert to XML
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- UPLOAD ZONE -->
+      <div class="upload-zone" id="uploadArea"
+        onclick="document.getElementById('fileSelector').click()"
+        ondragover="handleDragOver(event)"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event)">
+        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
         <h3><i class="fas fa-users"></i> Import HBB Customer Data</h3>
-        <p>Upload EXML export files containing subscriber records and cell states</p>
-        <button class="btn btn-success" id="browseBtn" type="button"><i class="fas fa-upload"></i> Browse file</button>
-        <input type="file" id="fileSelector" accept=".exml,.xml" style="display: none;">
-    </div>
+        <p>Drag & drop .exml or .xml files here, or click to browse</p>
+        <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); document.getElementById('fileSelector').click()">
+          <i class="fas fa-upload"></i> Browse file
+        </button>
+        <input type="file" id="fileSelector" accept=".exml,.xml" style="display:none" onchange="handleFileChange(event)">
+      </div>
 
-    <div id="messageArea"></div>
+      <!-- TOAST AREA -->
+      <div class="toast-stack" id="toastStack"></div>
 
-    <div class="action-toolbar">
-        <button class="btn btn-primary" id="convertAction"><i class="fas fa-arrow-right-arrow-left"></i> Convert to XML</button>
-        <button class="btn btn-outline" id="convertCsvBtn"><i class="fas fa-file-csv"></i> Convert to CSV</button>
-        <button class="btn btn-outline" id="clearAllBtn"><i class="fas fa-trash-alt"></i> Clear all</button>
-        <button class="btn btn-outline" id="copyXmlBtn"><i class="fas fa-copy"></i> Copy XML result</button>
-        <div id="loadingInline" style="display: none;"><div class="spinner-sm"></div><span style="margin-left: 8px;">processing...</span></div>
-    </div>
+      <!-- ACTION TOOLBAR -->
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="runConversion()">
+          <i class="fas fa-arrow-right-arrow-left"></i> Convert to XML
+        </button>
+        <button class="btn" onclick="runCsvConversion()">
+          <i class="fas fa-file-csv"></i> Convert to CSV
+        </button>
+        <div class="toolbar-divider"></div>
+        <button class="btn" onclick="copyXml()">
+          <i class="fas fa-copy"></i> Copy XML
+        </button>
+        <button class="btn" onclick="copyCsv()">
+          <i class="fas fa-copy"></i> Copy CSV
+        </button>
+        <button class="btn" onclick="downloadCsv()">
+          <i class="fas fa-download"></i> Download CSV
+        </button>
+        <div class="toolbar-divider"></div>
+        <button class="btn btn-danger" onclick="clearAll()">
+          <i class="fas fa-trash-alt"></i> Clear all
+        </button>
+        <div id="loadingIndicator" style="display:none; align-items:center; gap:6px; font-size:12px; color:var(--gray-500);">
+          <div class="spinner" style="display:block"></div>
+          <span>Processing...</span>
+        </div>
+      </div>
 
-    <!-- triple panel with CSV -->
-    <div class="dual-editor" style="grid-template-columns: 1fr 1fr 1fr;">
+      <!-- THREE PANELS -->
+      <div class="panels-grid">
+
+        <!-- PANEL 1: EXML Input -->
         <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-database"></i> EXML Customer Data</h2>
-                <span class="info-note"><i class="fas fa-code"></i> Erlang format</span>
+          <div class="card-header">
+            <div class="card-title">
+              <span class="dot dot-blue"></span>
+              EXML Customer Data
+              <span class="card-badge">Erlang</span>
             </div>
-            <textarea id="exmlSource" placeholder='Enter your EXML here...' spellcheck="false"></textarea>
+            <div class="card-actions">
+              <button class="btn btn-sm" onclick="pasteFromClipboard()">
+                <i class="fas fa-paste"></i> Paste
+              </button>
+            </div>
+          </div>
+          <textarea id="exmlSource"
+            placeholder="Paste EXML data here... or upload a file above"
+            spellcheck="false"></textarea>
         </div>
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-file-code"></i> XML Customer Records</h2>
-                <button class="btn-outline" id="inlineXmlCopy" style="padding: 5px 12px; font-size:12px;"><i class="fas fa-copy"></i> Copy</button>
-            </div>
-            <textarea id="xmlResult" readonly placeholder="Formatted XML will appear here ..." spellcheck="false"></textarea>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-file-csv"></i> CSV Customer Data</h2>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn-outline" id="inlineCsvCopy" style="padding: 5px 12px; font-size:12px;"><i class="fas fa-copy"></i> Copy</button>
-                    <button class="btn-outline" id="downloadCsvBtn" style="padding: 5px 12px; font-size:12px;"><i class="fas fa-download"></i> Download</button>
-                    <button class="btn-outline" id="toggleCsvViewBtn" style="padding: 5px 12px; font-size:12px;"><i class="fas fa-table"></i> Table</button>
-                </div>
-            </div>
-            <div id="csvTextareaContainer">
-                <textarea id="csvResult" readonly placeholder="CSV data (MSISDN, Custom1, Custom2, Custom8, BillingDay, Custom3) will appear here ..." spellcheck="false"></textarea>
-            </div>
-            <div id="csvTableContainer" style="display: none;">
-                <div id="csvTableWrapper" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
-                    <table id="csvTable" class="csv-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                        <thead id="csvTableHead" style="background-color: #f8f9fa; position: sticky; top: 0; z-index: 10;">
-                        </thead>
-                        <tbody id="csvTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- HUMAN READABLE BATTERY VIEW — clean, expand/collapse, unlimited representation -->
-    <div class="human-battery">
-        <div class="battery-header">
-            <h2 style="font-size:1.2rem;"><i class="fas fa-eye"></i> 📱 Customer Cell View · Manage States</h2>
-            <div style="display: flex; gap: 12px;">
-                <button class="btn-outline" id="expandAllHumanBtn" style="padding: 6px 14px;"><i class="fas fa-expand-alt"></i> Expand all</button>
-                <button class="btn-outline" id="collapseAllHumanBtn" style="padding: 6px 14px;"><i class="fas fa-compress-alt"></i> Collapse all</button>
-                <button class="btn-outline" id="copyHumanTextBtn" style="padding: 6px 14px;"><i class="fas fa-copy"></i> Copy tree</button>
+        <!-- PANEL 2: XML Output -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="dot dot-teal"></span>
+              XML Customer Records
             </div>
+            <div class="card-actions">
+              <button class="btn btn-sm" onclick="copyXml()">
+                <i class="fas fa-copy"></i> Copy
+              </button>
+              <button class="btn btn-sm" onclick="downloadXml()">
+                <i class="fas fa-download"></i> Save
+              </button>
+            </div>
+          </div>
+          <textarea id="xmlResult"
+            readonly
+            placeholder="Formatted XML will appear here after conversion..."
+            spellcheck="false"></textarea>
         </div>
-        <div id="humanReadablePanel" class="tree-view-container">
-            <div class="placeholder-clean"><i class="fas fa-diagram-project"></i> Convert EXML or upload file → structured XML view appears here (fully interactive, hierarchy clear)</div>
+
+        <!-- PANEL 3: CSV Output -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="dot dot-amber"></span>
+              CSV Customer Data
+            </div>
+            <div class="card-actions">
+              <div class="tab-bar">
+                <button class="tab-btn active" id="tabText" onclick="switchCsvTab('text')">Text</button>
+                <button class="tab-btn" id="tabTable" onclick="switchCsvTab('table')">Table</button>
+              </div>
+              <button class="btn btn-sm" style="margin-left:4px" onclick="copyCsv()">
+                <i class="fas fa-copy"></i>
+              </button>
+              <button class="btn btn-sm" onclick="downloadCsv()">
+                <i class="fas fa-download"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- CSV text view -->
+          <div id="csvTextView">
+            <textarea id="csvResult"
+              readonly
+              placeholder="CSV data (MSISDN, Custom1, Custom2, Custom8, BillingDay, Custom3) will appear here..."
+              spellcheck="false"></textarea>
+          </div>
+
+          <!-- CSV table view -->
+          <div id="csvTableView" style="display:none;">
+            <div id="csvTableWrapper">
+              <table class="data-table" id="csvDataTable">
+                <thead id="csvTableHead"></thead>
+                <tbody id="csvTableBody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
-    </div>
-    <footer><i class="fas fa-infinity"></i> No limits · full EXML support & human-optimized display</footer>
-</div>
+
+      </div>
+      <!-- end panels-grid -->
+
+      <!-- TREE / CELL VIEW -->
+      <div class="tree-panel" id="treeSection">
+        <div class="tree-panel-header">
+          <div class="tree-panel-title">
+            <i class="fas fa-sitemap" style="color:var(--blue); font-size:12px;"></i>
+            Customer Cell View &middot; Manage States
+          </div>
+          <div class="tree-actions">
+            <button class="btn btn-sm" onclick="expandAllTree()">
+              <i class="fas fa-expand-alt"></i> Expand all
+            </button>
+            <button class="btn btn-sm" onclick="collapseAllTree()">
+              <i class="fas fa-compress-alt"></i> Collapse all
+            </button>
+            <button class="btn btn-sm" onclick="copyTreeText()">
+              <i class="fas fa-copy"></i> Copy tree
+            </button>
+          </div>
+        </div>
+        <div class="tree-search" id="treeSearchBar" style="display:none;">
+          <input type="text" id="treeSearchInput" placeholder="&#128269; Search by MSISDN or field value..."
+            oninput="filterTreeSearch(this.value)">
+        </div>
+        <div class="tree-body" id="humanReadablePanel">
+          <div class="tree-placeholder">
+            <i class="fas fa-diagram-project"></i>
+            Convert EXML or upload a file — the structured XML cell view will appear here
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
 
 <script>
-    // DOM elements
-    const exmlInput = document.getElementById('exmlSource');
-    const xmlOutput = document.getElementById('xmlResult');
-    const csvOutput = document.getElementById('csvResult');
-    const convertBtn = document.getElementById('convertAction');
-    const convertCsvBtn = document.getElementById('convertCsvBtn');
-    const clearBtn = document.getElementById('clearAllBtn');
-    const copyXmlResultBtn = document.getElementById('copyXmlBtn');
-    
-    // CSV table elements
-    const csvTextareaContainer = document.getElementById('csvTextareaContainer');
-    const csvTableContainer = document.getElementById('csvTableContainer');
-    const csvTable = document.getElementById('csvTable');
-    const csvTableHead = document.getElementById('csvTableHead');
-    const csvTableBody = document.getElementById('csvTableBody');
-    const toggleCsvViewBtn = document.getElementById('toggleCsvViewBtn');
-    const downloadCsvBtn = document.getElementById('downloadCsvBtn');
-    const inlineXmlCopy = document.getElementById('inlineXmlCopy');
-    const inlineCsvCopy = document.getElementById('inlineCsvCopy');
-    const expandAllBtn = document.getElementById('expandAllHumanBtn');
-    const collapseAllBtn = document.getElementById('collapseAllHumanBtn');
-    const copyHumanText = document.getElementById('copyHumanTextBtn');
-    const uploadZone = document.getElementById('uploadArea');
-    const fileSelector = document.getElementById('fileSelector');
-    const browseBtn = document.getElementById('browseBtn');
-    const messageDiv = document.getElementById('messageArea');
-    const loadingSpan = document.getElementById('loadingInline');
-    const humanContainer = document.getElementById('humanReadablePanel');
+/* ================================================================
+   HBB CUSTOMER MANAGER — Full JavaScript
+   ================================================================ */
 
-    let currentXmlString = '';   // store latest XML for tree updates
+// ── DOM refs ──
+const exmlSource    = document.getElementById('exmlSource');
+const xmlResult     = document.getElementById('xmlResult');
+const csvResult     = document.getElementById('csvResult');
+const humanPanel    = document.getElementById('humanReadablePanel');
+const toastStack    = document.getElementById('toastStack');
+const spinnerGlobal = document.getElementById('spinnerGlobal');
+const loadingInd    = document.getElementById('loadingIndicator');
+const csvTableHead  = document.getElementById('csvTableHead');
+const csvTableBody  = document.getElementById('csvTableBody');
+const treeSearchBar = document.getElementById('treeSearchBar');
 
-    function showMsg(text, type = 'success') {
-        const msgBox = document.createElement('div');
-        msgBox.className = `alert-toast alert-${type}`;
-        msgBox.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${text}`;
-        messageDiv.appendChild(msgBox);
-        setTimeout(() => msgBox.remove(), 3500);
-    }
+let currentXml = '';
 
-    function clearMessagesUI() { messageDiv.innerHTML = ''; }
-
-    // CSRF helper (needed for django backend)
-    function getCookie(name) {
-        let val = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let c of cookies) {
-                const trimmed = c.trim();
-                if (trimmed.startsWith(name + '=')) {
-                    val = decodeURIComponent(trimmed.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return val;
-    }
-
-    // main conversion call
-    async function runConversion(exmlString) {
-        if (!exmlString.trim()) {
-            showMsg('Please provide EXML content', 'error');
-            return false;
-        }
-        loadingSpan.style.display = 'flex';
-        clearMessagesUI();
-        try {
-            const response = await fetch('/convert/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ exml: exmlString })
-            });
-            const data = await response.json();
-            if (data.success) {
-                xmlOutput.value = data.xml || '';
-                currentXmlString = data.xml || '';
-                renderHumanReadableView(currentXmlString);
-                showMsg('✓ Conversion successful — XML ready', 'success');
-                return true;
-            } else {
-                showMsg(data.error || 'Conversion error from server', 'error');
-                return false;
-            }
-        } catch (err) {
-            showMsg('Network error: ' + err.message, 'error');
-            return false;
-        } finally {
-            loadingSpan.style.display = 'none';
-        }
-    }
-
-    // CSV conversion call
-    async function runCsvConversion(exmlString) {
-        if (!exmlString.trim()) {
-            showMsg('Please provide EXML content', 'error');
-            return false;
-        }
-        loadingSpan.style.display = 'flex';
-        clearMessagesUI();
-        
-        console.log('DEBUG: Input data length:', exmlString.length);
-        console.log('DEBUG: Input data preview:', exmlString.substring(0, 200));
-        
-        try {
-            const response = await fetch('/convert-csv/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ exml: exmlString })
-            });
-            const data = await response.json();
-            console.log('CSV conversion response:', data);
-            console.log('Response details:', {
-                success: data.success,
-                record_count: data.record_count,
-                csv_length: data.csv?.length || 0,
-                csv_preview: data.csv?.substring(0, 100),
-                xml_preview: data.xml?.substring(0, 100)
-            });
-            
-            if (data.success) {
-                console.log('CSV data length:', data.csv?.length || 0);
-                console.log('CSV data preview:', data.csv?.substring(0, 100));
-                console.log('About to set csvOutput.value...');
-                csvOutput.value = data.csv || '';
-                console.log('csvOutput.value set to:', csvOutput.value.length, 'characters');
-                
-                // Render CSV table
-                renderCsvTable(data.csv || '');
-                
-                xmlOutput.value = data.xml || '';
-                currentXmlString = data.xml || '';
-                renderHumanReadableView(currentXmlString);
-                showMsg(`✓ CSV conversion successful — ${data.record_count} records extracted`, 'success');
-                return true;
-            } else {
-                console.log('CSV conversion error:', data.error);
-                showMsg(data.error || 'CSV conversion error from server', 'error');
-                return false;
-            }
-        } catch (err) {
-            showMsg('Network error: ' + err.message, 'error');
-            return false;
-        } finally {
-            loadingSpan.style.display = 'none';
-        }
-    }
-
-    // file upload (no size limit message)
-    async function uploadFileHandler(file) {
-        if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (ext !== 'exml' && ext !== 'xml') {
-            showMsg('Only .exml or .xml files are supported', 'error');
-            return;
-        }
-        const formData = new FormData();
-        formData.append('file', file);
-        loadingSpan.style.display = 'flex';
-        clearMessagesUI();
-        try {
-            const response = await fetch('/upload/', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }
-            });
-            const data = await response.json();
-            if (data.success) {
-                exmlInput.value = data.exml || '';
-                xmlOutput.value = data.xml || '';
-                currentXmlString = data.xml || '';
-                renderHumanReadableView(currentXmlString);
-                showMsg(`✔️ "${file.name}" processed (${data.format || 'EXML/XML'})`, 'success');
-            } else {
-                showMsg(data.error || 'Upload parsing failed', 'error');
-            }
-        } catch (err) {
-            showMsg('Upload error: ' + err.message, 'error');
-        } finally {
-            loadingSpan.style.display = 'none';
-            fileSelector.value = '';
-        }
-    }
-
-    // ---------- CLEAR HUMAN READABLE RENDER (unlimited, battery view, nested expand/collapse) ----------
-    function escapeHtmlEntities(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    function renderXmlTree(node, depth = 0) {
-        if (!node) return '';
-        let html = '';
-        if (node.nodeType === Node.ELEMENT_NODE) {
-            const hasComplexChildren = node.childNodes.length > 0 && Array.from(node.childNodes).some(n => n.nodeType === Node.ELEMENT_NODE || (n.nodeType === Node.TEXT_NODE && n.textContent.trim() !== ''));
-            const onlyTextChild = node.childNodes.length === 1 && node.childNodes[0].nodeType === Node.TEXT_NODE && node.childNodes[0].textContent.trim() !== '';
-            const uniqueId = `tree_${Date.now()}_${Math.random().toString(36).substr(2, 8)}_${depth}`;
-
-            let line = `<div class="tree-line">`;
-            if (hasComplexChildren && !onlyTextChild) {
-                line += `<span class="expand-clear" data-expand-id="${uniqueId}" data-expanded="true">▼</span>`;
-            } else {
-                line += `<span class="expand-clear" style="opacity:0.4">•</span>`;
-            }
-            line += `<span class="elem-tag">&lt;${node.nodeName}</span>`;
-            // attributes
-            if (node.attributes && node.attributes.length > 0) {
-                for (let i = 0; i < node.attributes.length; i++) {
-                    const attr = node.attributes[i];
-                    line += ` <span class="attr-name">${attr.name}</span>=<span class="attr-val">"${escapeHtmlEntities(attr.value)}"</span>`;
-                }
-            }
-            if (hasComplexChildren && !onlyTextChild) {
-                line += `<span class="elem-tag">></span></div>`;
-                html += line;
-                html += `<div class="children-wrap" id="${uniqueId}" style="display: block;">`;
-                for (let child of node.childNodes) {
-                    html += renderXmlTree(child, depth + 1);
-                }
-                html += `</div>`;
-                html += `<div class="tree-line"><span class="expand-clear" style="opacity:0.4">⎯</span><span class="elem-tag">&lt;/${node.nodeName}&gt;</span></div>`;
-            } else {
-                if (onlyTextChild) {
-                    const textVal = node.textContent.trim();
-                    line += `<span class="elem-tag">></span><span class="text-node">${escapeHtmlEntities(textVal)}</span><span class="elem-tag">&lt;/${node.nodeName}&gt;</span>`;
-                } else {
-                    line += `<span class="elem-tag"> /&gt;</span>`;
-                }
-                line += `</div>`;
-                html += line;
-            }
-        } else if (node.nodeType === Node.TEXT_NODE) {
-            const txt = node.textContent.trim();
-            if (txt) {
-                html += `<div class="tree-line"><span class="expand-clear" style="opacity:0.4">⎯</span><span class="text-node">${escapeHtmlEntities(txt)}</span></div>`;
-            }
-        } else if (node.nodeType === Node.COMMENT_NODE) {
-            html += `<div class="tree-line"><span class="expand-clear" style="opacity:0.4">⎯</span><span class="comment-node">&lt;!--${escapeHtmlEntities(node.textContent)}--&gt;</span></div>`;
-        }
-        return html;
-    }
-
-    function attachHumanEvents() {
-        document.querySelectorAll('.expand-clear[data-expand-id]').forEach(el => {
-            if (el.getAttribute('data-listener')) return;
-            el.setAttribute('data-listener', 'true');
-            el.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const targetId = el.getAttribute('data-expand-id');
-                if (targetId) {
-                    const childDiv = document.getElementById(targetId);
-                    if (childDiv) {
-                        const isHidden = childDiv.style.display === 'none';
-                        childDiv.style.display = isHidden ? 'block' : 'none';
-                        el.textContent = isHidden ? '▼' : '▶';
-                        el.setAttribute('data-expanded', isHidden ? 'true' : 'false');
-                    }
-                }
-            });
-            const expandedState = el.getAttribute('data-expanded') !== 'false';
-            el.textContent = expandedState ? '▼' : '▶';
-        });
-    }
-
-    function renderHumanReadableView(xmlStr) {
-        if (!xmlStr || xmlStr.trim() === '') {
-            humanContainer.innerHTML = `<div class="placeholder-clean"><i class="fas fa-code-branch"></i> No XML data — convert EXML or upload a file to see structured human view</div>`;
-            return;
-        }
-        let cleanXml = xmlStr.trim();
-        
-        // Remove XML declaration
-        if (cleanXml.startsWith('<?xml')) {
-            const declEnd = cleanXml.indexOf('?>');
-            if (declEnd !== -1) cleanXml = cleanXml.substring(declEnd + 2).trim();
-        }
-        
-        // Remove ALL comments (before, after, and within)
-        cleanXml = cleanXml.replace(/<!--[\s\S]*?-->/g, '').trim();
-        
-        // Find the root element and extract ONLY the root element content
-        const rootStartMatch = cleanXml.match(/^<(\w+)/);
-        if (rootStartMatch) {
-            const rootTag = rootStartMatch[1];
-            const rootOpenIndex = cleanXml.indexOf('<' + rootTag);
-            const rootCloseTag = '</' + rootTag + '>';
-            const rootCloseIndex = cleanXml.lastIndexOf(rootCloseTag);
-            
-            if (rootCloseIndex !== -1) {
-                // Extract only from root open to root close (inclusive)
-                cleanXml = cleanXml.substring(rootOpenIndex, rootCloseIndex + rootCloseTag.length);
-            }
-        }
-        
-        try {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(cleanXml, 'text/xml');
-            const parseErr = doc.querySelector('parsererror');
-            if (parseErr) {
-                console.error('XML Parse Error:', parseErr.textContent);
-                console.error('Attempted to parse XML of length:', cleanXml.length);
-                console.error('XML snippet (first 500 chars):', cleanXml.substring(0, 500));
-                console.error('XML snippet (last 500 chars):', cleanXml.substring(Math.max(0, cleanXml.length - 500)));
-                
-                // For large files with parse errors, try to use streaming view instead
-                if (xmlStr.length > 5000000) { // 5MB
-                    console.log('Attempting streaming view for large file with parse error');
-                    const recordMatches = xmlStr.match(/<subscriberRecord>[\s\S]*?<\/subscriberRecord>/g);
-                    const recordCount = recordMatches ? recordMatches.length : 0;
-                    
-                    let html = `<div class="large-file-notice">
-                        <p>📱 <strong>Customer Records View (Large File Mode)</strong></p>
-                        <p style="font-size: 14px; color: #6c757d; margin-top: 10px;">
-                            Large customer database detected (${(xmlStr.length / (1024 * 1024)).toFixed(2)} MB).
-                        </p>
-                        <p style="font-size: 14px; color: #6c757d; margin-top: 5px;">
-                            Found ${recordCount} subscriber records. Click to expand/collapse cell details.
-                        </p>
-                        <div style="margin-top:15px;">
-                            <input type="text" id="recordSearch" placeholder="🔍 Search by MSISDN or field value..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
-                            <p style="font-size:12px;color:#6c757d;margin-top:5px;">Showing <span id="recordCount">${recordCount}</span> records</p>
-                        </div>
-                    </div><div class="streaming-tree" id="streamingTreeContainer">`;
-                    
-                    for (let i = 0; i < recordCount; i++) {
-                        const record = recordMatches[i];
-                        const msisdnMatch = record.match(/MSISDN[^>]*>([^<]+)</);
-                        const msisdn = msisdnMatch ? msisdnMatch[1] : 'Record ' + (i + 1);
-                        html += `<div class="tree-record" data-msisdn="${msisdn}" data-index="${i}" style="margin:5px 0;padding-left:20px;">
-                            <span class="expand-icon" onclick="this.textContent=this.textContent==='▶'?'▼':'▶'; this.parentElement.querySelector('.record-content').style.display = this.textContent==='▼'?'block':'none';">▶</span>
-                            <span class="xml-element">&lt;subscriberRecord&gt;</span>
-                            <span style="color:#6c757d;font-size:12px;margin-left:10px;">MSISDN: ${msisdn}</span>
-                            <div class="record-content" style="display:none;margin-left:40px;margin-top:5px;">
-                                <pre style="background:#f8f9fa;padding:10px;border-radius:3px;font-size:12px;max-height:300px;overflow-y:auto;">${record.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
-                            </div>
-                        </div>`;
-                    }
-                    
-                    html += `</div>`;
-                    humanContainer.innerHTML = html;
-                    
-                    // Add search functionality
-                    const searchInput = document.getElementById('recordSearch');
-                    const recordElements = document.querySelectorAll('.tree-record');
-                    const recordCountSpan = document.getElementById('recordCount');
-                    
-                    if (searchInput) {
-                        searchInput.addEventListener('input', (e) => {
-                            const query = e.target.value.toLowerCase();
-                            let visibleCount = 0;
-                            
-                            recordElements.forEach(el => {
-                                const msisdn = el.getAttribute('data-msisdn').toLowerCase();
-                                const content = el.textContent.toLowerCase();
-                                const matches = query === '' || msisdn.includes(query) || content.includes(query);
-                                el.style.display = matches ? 'block' : 'none';
-                                if (matches) visibleCount++;
-                            });
-                            
-                            recordCountSpan.textContent = visibleCount;
-                        });
-                    }
-                    return;
-                }
-                
-                humanContainer.innerHTML = `<div class="placeholder-clean" style="color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> XML structure issue detected. Showing raw XML in output field above.<br><small>${escapeHtmlEntities(parseErr.textContent.substring(0, 200))}</small></div>`;
-                return;
-            }
-            const root = doc.documentElement;
-            if (!root) throw new Error('empty root');
-            const treeHtml = renderXmlTree(root);
-            humanContainer.innerHTML = `<div class="human-tree-root">${treeHtml}</div>`;
-            attachHumanEvents();
-        } catch (err) {
-            console.warn(err);
-            humanContainer.innerHTML = `<div class="placeholder-clean"><i class="fas fa-cog"></i> Tree rendering fallback: ${err.message}<br>But XML is valid in output panel.</div>`;
-        }
-    }
-
-    function expandAllHuman() {
-        document.querySelectorAll('.children-wrap').forEach(el => el.style.display = 'block');
-        document.querySelectorAll('.expand-clear[data-expand-id]').forEach(el => {
-            el.textContent = '▼';
-            el.setAttribute('data-expanded', 'true');
-        });
-    }
-
-    function collapseAllHuman() {
-        document.querySelectorAll('.children-wrap').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.expand-clear[data-expand-id]').forEach(el => {
-            el.textContent = '▶';
-            el.setAttribute('data-expanded', 'false');
-        });
-    }
-
-    function copyHumanReadableText() {
-        const rawText = humanContainer.innerText;
-        navigator.clipboard.writeText(rawText).then(() => showMsg('Human-readable view copied', 'success')).catch(() => showMsg('Copy failed', 'error'));
-    }
-
-    // events & initial
-    convertBtn.addEventListener('click', () => runConversion(exmlInput.value));
-    convertCsvBtn.addEventListener('click', () => runCsvConversion(exmlInput.value));
-    clearBtn.addEventListener('click', () => {
-        exmlInput.value = '';
-        xmlOutput.value = '';
-        csvOutput.value = '';
-        currentXmlString = '';
-        renderHumanReadableView('');
-        clearMessagesUI();
-        showMsg('Cleared all fields', 'success');
+/* ── CSRF ── */
+function getCsrf() {
+  let v = null;
+  if (document.cookie) {
+    document.cookie.split(';').forEach(c => {
+      const t = c.trim();
+      if (t.startsWith('csrftoken=')) v = decodeURIComponent(t.slice(10));
     });
-    copyXmlResultBtn.addEventListener('click', () => {
-        if (xmlOutput.value) {
-            xmlOutput.select();
-            document.execCommand('copy');
-            showMsg('XML copied to clipboard', 'success');
-        } else showMsg('No XML to copy', 'error');
+  }
+  return v;
+}
+
+/* ── TOAST ── */
+function showToast(msg, type = 'success', duration = 3200) {
+  const icons = { success: 'fa-check-circle', error: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${msg}`;
+  toastStack.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(20px)';
+    t.style.transition = '.2s ease';
+    setTimeout(() => t.remove(), 220);
+  }, duration);
+}
+
+/* ── SPINNER ── */
+function setLoading(on) {
+  spinnerGlobal.style.display = on ? 'block' : 'none';
+  loadingInd.style.display = on ? 'flex' : 'none';
+}
+
+/* ── CONVERSION: XML ── */
+async function runConversion() {
+  const exml = exmlSource.value;
+  if (!exml.trim()) { showToast('Please provide EXML content', 'error'); return; }
+  setLoading(true);
+  try {
+    const res = await fetch('/convert/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+      body: JSON.stringify({ exml })
     });
-    inlineXmlCopy.addEventListener('click', () => {
-        if (xmlOutput.value) {
-            xmlOutput.select();
-            document.execCommand('copy');
-            showMsg('XML output copied', 'success');
-        } else showMsg('Nothing to copy', 'error');
+    const data = await res.json();
+    if (data.success) {
+      xmlResult.value = data.xml || '';
+      currentXml = data.xml || '';
+      renderHumanTree(currentXml);
+      showToast('Conversion successful — XML ready', 'success');
+    } else {
+      showToast(data.error || 'Conversion error from server', 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  } finally {
+    setLoading(false);
+  }
+}
+
+/* ── CONVERSION: CSV ── */
+async function runCsvConversion() {
+  const exml = exmlSource.value;
+  if (!exml.trim()) { showToast('Please provide EXML content', 'error'); return; }
+  setLoading(true);
+  try {
+    const res = await fetch('/convert-csv/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+      body: JSON.stringify({ exml })
     });
-    inlineCsvCopy.addEventListener('click', () => {
-        if (csvOutput.value) {
-            csvOutput.select();
-            document.execCommand('copy');
-            showMsg('CSV data copied', 'success');
-        } else showMsg('No CSV data to copy', 'error');
+    const data = await res.json();
+    if (data.success) {
+      csvResult.value = data.csv || '';
+      xmlResult.value = data.xml || '';
+      currentXml = data.xml || '';
+      renderHumanTree(currentXml);
+      buildCsvTable(data.csv || '');
+      showToast(`CSV ready — ${data.record_count} records extracted`, 'success');
+    } else {
+      showToast(data.error || 'CSV conversion error', 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  } finally {
+    setLoading(false);
+  }
+}
+
+/* ── FILE UPLOAD ── */
+function handleFileChange(e) {
+  if (e.target.files.length) processFile(e.target.files[0]);
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('uploadArea').classList.add('dragover');
+}
+
+function handleDragLeave(e) {
+  document.getElementById('uploadArea').classList.remove('dragover');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadArea').classList.remove('dragover');
+  if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+}
+
+async function processFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'exml' && ext !== 'xml') {
+    showToast('Only .exml or .xml files are supported', 'error');
+    return;
+  }
+  const formData = new FormData();
+  formData.append('file', file);
+  setLoading(true);
+  try {
+    const res = await fetch('/upload/', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-CSRFToken': getCsrf() }
     });
-    expandAllBtn.addEventListener('click', expandAllHuman);
-    collapseAllBtn.addEventListener('click', collapseAllHuman);
-    copyHumanText.addEventListener('click', copyHumanReadableText);
+    const data = await res.json();
+    if (data.success) {
+      exmlSource.value = data.exml || '';
+      xmlResult.value = data.xml || '';
+      currentXml = data.xml || '';
+      renderHumanTree(currentXml);
+      showToast(`"${file.name}" processed successfully`, 'success');
+    } else {
+      showToast(data.error || 'Upload parsing failed', 'error');
+    }
+  } catch (e) {
+    showToast('Upload error: ' + e.message, 'error');
+  } finally {
+    setLoading(false);
+    document.getElementById('fileSelector').value = '';
+  }
+}
 
-    // file upload handlers
-    browseBtn.addEventListener('click', () => fileSelector.click());
-    fileSelector.addEventListener('change', (e) => { if (e.target.files.length) uploadFileHandler(e.target.files[0]); });
-    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) uploadFileHandler(e.dataTransfer.files[0]);
+/* ── CLIPBOARD ── */
+function copyXml() {
+  if (!xmlResult.value) { showToast('No XML to copy', 'error'); return; }
+  navigator.clipboard.writeText(xmlResult.value)
+    .then(() => showToast('XML copied to clipboard', 'success'))
+    .catch(() => { xmlResult.select(); document.execCommand('copy'); showToast('XML copied', 'success'); });
+}
+
+function copyCsv() {
+  if (!csvResult.value) { showToast('No CSV data to copy', 'error'); return; }
+  navigator.clipboard.writeText(csvResult.value)
+    .then(() => showToast('CSV copied to clipboard', 'success'))
+    .catch(() => { csvResult.select(); document.execCommand('copy'); showToast('CSV copied', 'success'); });
+}
+
+function copyTreeText() {
+  const txt = humanPanel.innerText;
+  navigator.clipboard.writeText(txt)
+    .then(() => showToast('Tree view copied', 'success'))
+    .catch(() => showToast('Copy failed', 'error'));
+}
+
+async function pasteFromClipboard() {
+  try {
+    const txt = await navigator.clipboard.readText();
+    exmlSource.value = txt;
+    showToast('Pasted from clipboard', 'info');
+  } catch (e) {
+    showToast('Could not access clipboard', 'error');
+  }
+}
+
+/* ── DOWNLOAD ── */
+function downloadCsv() {
+  if (!csvResult.value.trim()) { showToast('No CSV data to download', 'error'); return; }
+  triggerDownload(csvResult.value, `subscribers_${timestamp()}.csv`, 'text/csv');
+  showToast('CSV file downloaded', 'success');
+}
+
+function downloadXml() {
+  if (!xmlResult.value.trim()) { showToast('No XML to download', 'error'); return; }
+  triggerDownload(xmlResult.value, `subscribers_${timestamp()}.xml`, 'text/xml');
+  showToast('XML file downloaded', 'success');
+}
+
+function triggerDownload(content, filename, mime) {
+  const blob = new Blob([content], { type: mime + ';charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function timestamp() {
+  return new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+}
+
+/* ── CLEAR ── */
+function clearAll() {
+  exmlSource.value = '';
+  xmlResult.value = '';
+  csvResult.value = '';
+  currentXml = '';
+  csvTableHead.innerHTML = '';
+  csvTableBody.innerHTML = '';
+  humanPanel.innerHTML = `<div class="tree-placeholder"><i class="fas fa-diagram-project"></i>Convert EXML or upload a file — structured XML cell view will appear here</div>`;
+  treeSearchBar.style.display = 'none';
+  showToast('All fields cleared', 'info');
+}
+
+/* ── CSV TAB ── */
+function switchCsvTab(tab) {
+  const isText = tab === 'text';
+  document.getElementById('csvTextView').style.display = isText ? '' : 'none';
+  document.getElementById('csvTableView').style.display = isText ? 'none' : '';
+  document.getElementById('tabText').classList.toggle('active', isText);
+  document.getElementById('tabTable').classList.toggle('active', !isText);
+}
+
+/* ── CSV TABLE ── */
+function buildCsvTable(csv) {
+  if (!csv.trim()) return;
+  const lines = csv.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim());
+
+  csvTableHead.innerHTML = '<tr>' + headers.map(h =>
+    `<th>${escHtml(h)}</th>`).join('') + '</tr>';
+
+  csvTableBody.innerHTML = '';
+  for (let i = 1; i < lines.length; i++) {
+    const cells = lines[i].split(',').map(c => c.trim());
+    const tr = document.createElement('tr');
+    cells.forEach(c => {
+      const td = document.createElement('td');
+      td.title = c;
+      td.textContent = c;
+      tr.appendChild(td);
     });
-    uploadZone.addEventListener('click', () => fileSelector.click());
+    csvTableBody.appendChild(tr);
+  }
+}
 
-    // CSV table functions
-    function renderCsvTable(csvContent) {
-        if (!csvContent.trim()) {
-            csvTableHead.innerHTML = '';
-            csvTableBody.innerHTML = '';
-            return;
-        }
-        
-        const lines = csvContent.trim().split('\n');
-        if (lines.length === 0) return;
-        
-        // Parse header
-        const headers = lines[0].split(',').map(h => h.trim());
-        
-        // Create table header
-        csvTableHead.innerHTML = `
-            <tr>
-                ${headers.map(header => `<th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600;">${escapeHtmlEntities(header)}</th>`).join('')}
-            </tr>
-        `;
-        
-        // Create table body
-        csvTableBody.innerHTML = '';
-        for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',').map(v => v.trim());
-            const row = document.createElement('tr');
-            row.style.cssText = i % 2 === 0 ? 'background-color: #f8f9fa;' : 'background-color: white;';
-            
-            values.forEach((value, index) => {
-                const cell = document.createElement('td');
-                cell.style.cssText = 'padding: 8px 12px; border-bottom: 1px solid #eee; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
-                cell.title = value; // Show full value on hover
-                cell.textContent = value || '';
-                row.appendChild(cell);
-            });
-            
-            csvTableBody.appendChild(row);
-        }
-    }
-    
-    function toggleCsvView() {
-        const isTableVisible = csvTableContainer.style.display !== 'none';
-        
-        if (isTableVisible) {
-            // Switch to textarea view
-            csvTableContainer.style.display = 'none';
-            csvTextareaContainer.style.display = 'block';
-            toggleCsvViewBtn.innerHTML = '<i class="fas fa-table"></i> Table';
-        } else {
-            // Switch to table view
-            csvTextareaContainer.style.display = 'none';
-            csvTableContainer.style.display = 'block';
-            toggleCsvViewBtn.innerHTML = '<i class="fas fa-file-alt"></i> Text';
-        }
-    }
-    
-    function downloadCsv() {
-        if (!csvOutput.value.trim()) {
-            showMsg('No CSV data to download', 'error');
-            return;
-        }
-        
-        const blob = new Blob([csvOutput.value], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        
-        link.setAttribute('href', url);
-        link.setAttribute('download', `subscriber_data_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
-        link.style.visibility = 'hidden';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showMsg('CSV file downloaded', 'success');
-    }
-    
-    // CSV event listeners
-    toggleCsvViewBtn.addEventListener('click', toggleCsvView);
-    downloadCsvBtn.addEventListener('click', downloadCsv);
+/* ── SCROLL TO TREE ── */
+function scrollToTree() {
+  document.getElementById('treeSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-    // Customer coordinates elements
-    const checkCoordinatesBtn = document.getElementById('checkCoordinatesBtn');
-    const checkCellsBtn = document.getElementById('checkCellsBtn');
-    const addCoordinatesBtn = document.getElementById('addCoordinatesBtn');
-    const coordinatesPanel = document.getElementById('coordinatesPanel');
+/* ── XML ESCAPING ── */
+function escHtml(str) {
+  return (str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
 
-    // Customer coordinates functions
-    async function checkCustomerCoordinates() {
-        const customerId = prompt('Enter Customer ID or MSISDN:');
-        if (!customerId) {
-            showMsg('Customer ID is required', 'error');
-            return;
-        }
+/* ─────────────────────────────────────────────────────────────────
+   TREE RENDER
+───────────────────────────────────────────────────────────────── */
+function renderHumanTree(xmlStr) {
+  if (!xmlStr || !xmlStr.trim()) {
+    humanPanel.innerHTML = `<div class="tree-placeholder"><i class="fas fa-code-branch"></i>No XML data — convert EXML or upload a file</div>`;
+    treeSearchBar.style.display = 'none';
+    return;
+  }
 
-        try {
-            const response = await fetch('/get-coordinates/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ customer_id: customerId })
-            });
+  // Clean up
+  let clean = xmlStr.trim()
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/^<\?xml[^?]*\?>/, '')
+    .trim();
 
-            const data = await response.json();
-            
-            if (data.success) {
-                displayCoordinatesResult(data);
-                showMsg(`✓ Found coordinates for ${customerId}`, 'success');
-            } else {
-                showMsg(data.error || 'Error checking coordinates', 'error');
-            }
-        } catch (err) {
-            showMsg('Network error: ' + err.message, 'error');
-        }
+  // Extract root element only
+  const rootMatch = clean.match(/^<(\w[\w:-]*)/);
+  if (rootMatch) {
+    const rootTag = rootMatch[1];
+    const closeTag = `</${rootTag}>`;
+    const closeIdx = clean.lastIndexOf(closeTag);
+    if (closeIdx !== -1) clean = clean.substring(0, closeIdx + closeTag.length);
+  }
+
+  // Large file shortcut (> 2MB: streaming record view)
+  if (xmlStr.length > 2000000) {
+    renderLargeFileMode(xmlStr);
+    return;
+  }
+
+  try {
+    const doc = new DOMParser().parseFromString(clean, 'text/xml');
+    const err = doc.querySelector('parsererror');
+    if (err) {
+      if (xmlStr.length > 500000) { renderLargeFileMode(xmlStr); return; }
+      humanPanel.innerHTML = `<div class="tree-placeholder" style="color:var(--red)"><i class="fas fa-exclamation-triangle"></i>XML structure issue detected.<br><small>${escHtml(err.textContent.slice(0, 200))}</small></div>`;
+      treeSearchBar.style.display = 'none';
+      return;
     }
 
-    async function checkCustomerCells() {
-        const customerId = prompt('Enter Customer ID or MSISDN:');
-        const custom3Data = prompt('Enter Custom3 data (comma-separated cell IDs):');
-        
-        if (!customerId) {
-            showMsg('Customer ID is required', 'error');
-            return;
-        }
+    humanPanel.innerHTML = `<div id="treeRoot">${buildTreeHtml(doc.documentElement, 0)}</div>`;
+    attachToggleListeners();
+    treeSearchBar.style.display = 'none';
+  } catch (e) {
+    humanPanel.innerHTML = `<div class="tree-placeholder"><i class="fas fa-cog"></i>Render error: ${escHtml(e.message)}</div>`;
+  }
+}
 
-        try {
-            const response = await fetch('/check-cells/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ 
-                    customer_id: customerId,
-                    custom3_data: custom3Data || ''
-                })
-            });
+/* ── Build tree HTML ── */
+let _treeIdCounter = 0;
+function buildTreeHtml(node, depth) {
+  if (!node) return '';
+  let html = '';
 
-            const data = await response.json();
-            
-            if (data.success) {
-                displayCellAssignmentResult(data);
-                showMsg(`✓ Cell assignment checked for ${customerId}`, 'success');
-            } else {
-                showMsg(data.error || 'Error checking cell assignment', 'error');
-            }
-        } catch (err) {
-            showMsg('Network error: ' + err.message, 'error');
-        }
+  if (node.nodeType === 1) { // Element
+    const children = Array.from(node.childNodes);
+    const hasElemChildren = children.some(n => n.nodeType === 1);
+    const onlyText = children.length === 1 && children[0].nodeType === 3 && children[0].textContent.trim();
+    const uid = 'tn' + (++_treeIdCounter);
+    const indent = '  '.repeat(depth);
+
+    html += `<div class="tree-line" style="margin-left:${depth * 16}px">`;
+
+    if (hasElemChildren) {
+      html += `<span class="tree-toggle" data-uid="${uid}">▼</span>`;
+    } else {
+      html += `<span class="tree-neutral">·</span>`;
     }
 
-    async function addCustomerCoordinates() {
-        const customerId = prompt('Enter Customer ID:');
-        const latitude = prompt('Enter latitude:');
-        const longitude = prompt('Enter longitude:');
-        const cellTowerId = prompt('Enter Cell Tower ID:');
-        const cellTowerName = prompt('Enter Cell Tower Name:');
-        
-        if (!customerId || !latitude || !longitude || !cellTowerId) {
-            showMsg('All fields are required', 'error');
-            return;
-        }
+    html += ` <span class="elem-tag">&lt;${escHtml(node.nodeName)}</span>`;
 
-        try {
-            const response = await fetch('/add-coordinates/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({
-                    customer_id: customerId,
-                    latitude: parseFloat(latitude),
-                    longitude: parseFloat(longitude),
-                    cell_tower_id: cellTowerId,
-                    cell_tower_name: cellTowerName
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                showMsg(`✓ Customer ${customerId} added to coordinates`, 'success');
-                // Clear form fields
-                document.getElementById('customerId').value = '';
-                document.getElementById('latitude').value = '';
-                document.getElementById('longitude').value = '';
-                document.getElementById('cellTowerId').value = '';
-                document.getElementById('cellTowerName').value = '';
-            } else {
-                showMsg(data.error || 'Error adding customer', 'error');
-            }
-        } catch (err) {
-            showMsg('Network error: ' + err.message, 'error');
-        }
+    if (node.attributes) {
+      for (let i = 0; i < node.attributes.length; i++) {
+        const a = node.attributes[i];
+        html += ` <span class="attr-name">${escHtml(a.name)}</span>=<span class="attr-val">"${escHtml(a.value)}"</span>`;
+      }
     }
 
-    function displayCoordinatesResult(data) {
-        const customer = data.customer;
-        coordinatesPanel.innerHTML = `
-            <div style="padding: 20px; background: white; border-radius: 8px; margin-bottom: 15px;">
-                <h3 style="color: #0a2540; margin-bottom: 10px;">📍 Customer Coordinates</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
-                    <div><strong>Customer ID:</strong> ${customer.customer_id}</div>
-                    <div><strong>Latitude:</strong> ${customer.latitude}</div>
-                    <div><strong>Longitude:</strong> ${customer.longitude}</div>
-                    <div><strong>Cell Tower ID:</strong> ${customer.cell_tower_id}</div>
-                    <div><strong>Cell Tower Name:</strong> ${customer.cell_tower_name}</div>
-                    <div><strong>Status:</strong> ${customer.is_active ? '🟢 Active' : '🔴 Inactive'}</div>
-                    <div><strong>Assigned:</strong> ${new Date(customer.assigned_at).toLocaleString()}</div>
-                </div>
-            </div>
-        `;
+    if (hasElemChildren) {
+      html += `<span class="elem-tag">&gt;</span></div>`;
+      html += `<div class="children-wrap" id="${uid}">`;
+      children.forEach(c => { html += buildTreeHtml(c, depth + 1); });
+      html += `</div>`;
+      html += `<div class="tree-line" style="margin-left:${depth * 16}px"><span class="tree-neutral">·</span> <span class="elem-tag">&lt;/${escHtml(node.nodeName)}&gt;</span></div>`;
+    } else if (onlyText) {
+      html += `<span class="elem-tag">&gt;</span><span class="text-node">${escHtml(node.textContent.trim())}</span><span class="elem-tag">&lt;/${escHtml(node.nodeName)}&gt;</span></div>`;
+    } else {
+      html += `<span class="elem-tag"> /&gt;</span></div>`;
     }
 
-    function displayCellAssignmentResult(data) {
-        const hasCoordinates = data.has_coordinates;
-        const hasCellAssignment = data.has_cell_assignment;
-        const unlimitedAccess = data.unlimited_access;
-        const custom3Cells = data.custom3_cells || [];
-
-        coordinatesPanel.innerHTML = `
-            <div style="padding: 20px; background: white; border-radius: 8px; margin-bottom: 15px;">
-                <h3 style="color: #0a2540; margin-bottom: 15px;">📱 Cell Assignment Status</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px;">
-                    <div style="padding: 10px; background: ${hasCoordinates ? '#d4edda' : '#f8d7da'}; border-radius: 6px;">
-                        <div style="margin-bottom: 8px;"><strong>📍 Coordinates:</strong> ${hasCoordinates ? '✅ Assigned' : '❌ Not Found'}</div>
-                        <div><strong>Cell Assignment:</strong> ${hasCellAssignment ? '✅ Assigned' : '❌ No Assignment'}</div>
-                        <div><strong>Access Level:</strong> ${unlimitedAccess ? '🌍 Unlimited (Critical!)' : '📶 Restricted'}</div>
-                    </div>
-                    <div style="padding: 10px; background: #f8f9fa; border-radius: 6px;">
-                        <div style="margin-bottom: 10px;"><strong>📋 Custom3 Cell IDs:</strong></div>
-                        <div style="max-height: 150px; overflow-y: auto; background: white; padding: 10px; border-radius: 4px; font-family: monospace;">
-                            ${custom3Cells.length > 0 ? custom3Cells.join(', ') : 'No cell IDs found'}
-                        </div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 6px; font-size: 12px;">
-                    <strong>📝 Message:</strong> ${data.message}
-                </div>
-            </div>
-        `;
+  } else if (node.nodeType === 3) { // Text
+    const txt = node.textContent.trim();
+    if (txt) {
+      html += `<div class="tree-line" style="margin-left:${depth * 16}px"><span class="tree-neutral">·</span> <span class="text-node">${escHtml(txt)}</span></div>`;
     }
+  } else if (node.nodeType === 8) { // Comment
+    html += `<div class="tree-line" style="margin-left:${depth * 16}px"><span class="tree-neutral">·</span> <span class="comment-node">&lt;!-- ${escHtml(node.textContent)} --&gt;</span></div>`;
+  }
+  return html;
+}
 
-    // Customer coordinates event listeners
-    checkCoordinatesBtn.addEventListener('click', checkCustomerCoordinates);
-    checkCellsBtn.addEventListener('click', checkCustomerCells);
-    addCoordinatesBtn.addEventListener('click', addCustomerCoordinates);
+function attachToggleListeners() {
+  document.querySelectorAll('.tree-toggle').forEach(el => {
+    el.addEventListener('click', function () {
+      const uid = this.dataset.uid;
+      const wrap = document.getElementById(uid);
+      if (!wrap) return;
+      const collapsed = wrap.style.display === 'none';
+      wrap.style.display = collapsed ? '' : 'none';
+      this.textContent = collapsed ? '▼' : '▶';
+    });
+  });
+}
 
-    // sample exml for demo visibility (battery ready)
-    if (!exmlInput.value) {
-        exmlInput.value = ``;
-    }
-    // optional: pre-run to show example tree after load (but only after user interaction? we keep silent, but if they click convert it appears)
-    // we also can show sample after loading? let's allow manual convert. but we auto-render if any xml exist? Not needed.
-    // final: user-friendly.
+/* ── Large file streaming mode ── */
+function renderLargeFileMode(xmlStr) {
+  const records = xmlStr.match(/<subscriberRecord>[\s\S]*?<\/subscriberRecord>/g) || [];
+  treeSearchBar.style.display = 'block';
+
+  let html = `<div style="margin-bottom:12px; padding:8px 12px; background:var(--blue-pale); border-radius:var(--radius-sm); font-size:12px; color:var(--blue);">
+    <i class="fas fa-info-circle"></i>
+    Large file mode — ${records.length} subscriber records found.
+    <span id="visibleCount" style="font-weight:600">${records.length} shown</span>
+  </div>`;
+
+  html += `<div id="recordList">`;
+  records.forEach((rec, i) => {
+    const msisdnM = rec.match(/MSISDN[^>]*>([^<]+)</);
+    const msisdn = msisdnM ? msisdnM[1] : `Record ${i + 1}`;
+    html += `
+      <div class="record-card" data-msisdn="${escHtml(msisdn)}" data-idx="${i}">
+        <div class="record-card-header" onclick="toggleRecord(this)">
+          <span class="tree-toggle">▶</span>
+          <span class="elem-tag">&lt;subscriberRecord&gt;</span>
+          <span style="color:var(--gray-400); font-size:11px; margin-left:8px;">MSISDN: ${escHtml(msisdn)}</span>
+        </div>
+        <div class="record-card-body">${escHtml(rec)}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  humanPanel.innerHTML = html;
+
+  // Bind search
+  document.getElementById('treeSearchInput').oninput = function() {
+    filterLargeRecords(this.value.toLowerCase());
+  };
+}
+
+function toggleRecord(header) {
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.tree-toggle');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  if (icon) icon.textContent = open ? '▶' : '▼';
+}
+
+function filterLargeRecords(query) {
+  const cards = document.querySelectorAll('.record-card');
+  let count = 0;
+  cards.forEach(card => {
+    const msisdn = (card.dataset.msisdn || '').toLowerCase();
+    const body = card.querySelector('.record-card-body');
+    const content = (body ? body.textContent : '').toLowerCase();
+    const match = !query || msisdn.includes(query) || content.includes(query);
+    card.style.display = match ? '' : 'none';
+    if (match) count++;
+  });
+  const vc = document.getElementById('visibleCount');
+  if (vc) vc.textContent = count + ' shown';
+}
+
+/* ── Tree expand / collapse all ── */
+function expandAllTree() {
+  document.querySelectorAll('.children-wrap').forEach(el => el.style.display = '');
+  document.querySelectorAll('.tree-toggle[data-uid]').forEach(el => el.textContent = '▼');
+}
+
+function collapseAllTree() {
+  document.querySelectorAll('.children-wrap').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tree-toggle[data-uid]').forEach(el => el.textContent = '▶');
+}
+
+/* ── Tree search (normal mode) ── */
+function filterTreeSearch(query) {
+  // For normal mode, highlight matching lines
+  // This is a basic implementation — large file mode has its own filter
+  const lines = humanPanel.querySelectorAll('.tree-line');
+  lines.forEach(line => {
+    if (!query) { line.style.background = ''; return; }
+    const txt = line.textContent.toLowerCase();
+    line.style.background = txt.includes(query.toLowerCase()) ? 'var(--blue-pale)' : '';
+  });
+}
+
 </script>
 </body>
 </html>

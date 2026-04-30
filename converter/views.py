@@ -9,7 +9,7 @@ import json
 import csv
 import io
 from .exml_parser import EXMLToXMLConverter, FlatSubscriberDataParser, MixedXmlFlatParser
-from .models import CustomerCoordinate, HBBCustomer, CellsInfo
+from .models import CustomerCoordinate, HBBCustomer, CellsInfo, CustomerDataFromExcelRaw
 
 
 def find_customer_by_lookup(customer_lookup):
@@ -34,6 +34,18 @@ def haversine_km(lat1, lon1, lat2, lon2):
     a = math.sin(d_lat / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(d_lon / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return radius * c
+
+
+def parse_custom3_cells(raw_custom3):
+    if not raw_custom3:
+        return []
+    cleaned = str(raw_custom3).replace('[', '').replace(']', '')
+    parts = [p.strip() for p in cleaned.split(',') if p.strip()]
+    unique = []
+    for part in parts:
+        if part not in unique:
+            unique.append(part)
+    return unique
 
 
 def cells_info_table_exists():
@@ -75,7 +87,45 @@ def dashboard(request):
     """
     Dashboard page - main entry point with navigation to converter and coordinates
     """
-    return render(request, 'converter/dashboard.html')
+    # Calculate real statistics from database
+    total_customers = HBBCustomer.objects.count()
+    total_coordinates = CustomerCoordinate.objects.count()
+    total_cells = CellsInfo.objects.count()
+    
+    # Calculate customers with coordinates
+    customers_with_coords = CustomerCoordinate.objects.filter(
+        msisdn__in=HBBCustomer.objects.values_list('msisdn', flat=True)
+    ).count()
+    
+    # Calculate success rate (customers with coordinates / total customers)
+    success_rate = 0
+    if total_customers > 0:
+        success_rate = round((customers_with_coords / total_customers) * 100, 1)
+    
+    # Calculate growth based on MSISDN comparison between HBB customers and excel raw data
+    excel_raw_customers = CustomerDataFromExcelRaw.objects.exclude(msisdn__isnull=True).exclude(msisdn='').count()
+    
+    # Calculate growth as percentage of excel customers that are in HBB system
+    customer_change = 0
+    if excel_raw_customers > 0:
+        customer_change = round((total_customers / excel_raw_customers) * 100, 1)
+    
+    # Calculate coverage percentage
+    coverage_percentage = 0
+    if total_customers > 0:
+        coverage_percentage = round((customers_with_coords / total_customers) * 100, 1)
+    
+    context = {
+        'total_customers': total_customers,
+        'customers_with_coordinates': customers_with_coords,
+        'active_cells': total_cells,
+        'success_rate': success_rate,
+        'customer_change': customer_change,
+        'coverage_percentage': coverage_percentage,
+        'excel_raw_customers': excel_raw_customers,
+    }
+    
+    return render(request, 'converter/dashboard.html', context)
 
 def index(request):
     """
@@ -578,6 +628,7 @@ def coordinates_page(request):
                 'customer': customer,
                 'is_locked': is_locked,
                 'custom3': custom3_value,
+                'custom3_cells': parse_custom3_cells(custom3_value),
             })
             if not is_locked:
                 unlocked_customers.append({
@@ -701,6 +752,75 @@ def save_customer_cells(request):
         })
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON body'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Server error: {str(e)}'})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def registered_cell_distances(request):
+    try:
+        if not cells_info_table_exists():
+            return JsonResponse({'success': False, 'error': 'cells_info table is missing in database'})
+
+        msisdn = request.GET.get('msisdn', '').strip()
+        if not msisdn:
+            return JsonResponse({'success': False, 'error': 'msisdn is required'})
+
+        customer = HBBCustomer.objects.filter(msisdn=msisdn).first()
+        if not customer:
+            return JsonResponse({'success': False, 'error': f'Customer {msisdn} not found'})
+
+        coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
+        if not coord or coord.latitude is None or coord.longitude is None:
+            return JsonResponse({'success': False, 'error': f'Coordinates not available for {msisdn}'})
+
+        registered_cells = parse_custom3_cells(coord.custom3 or '')
+        if not registered_cells:
+            return JsonResponse({'success': True, 'customer': {'msisdn': msisdn}, 'distances': []})
+
+        customer_lat = float(coord.latitude)
+        customer_lon = float(coord.longitude)
+        distance_rows = []
+        not_found = []
+
+        for cell_id in registered_cells:
+            cell_obj = None
+            if cell_id.isdigit():
+                cell_obj = CellsInfo.objects.filter(eutracelid=int(cell_id)).first()
+                if not cell_obj:
+                    cell_obj = CellsInfo.objects.filter(id=int(cell_id)).first()
+            if not cell_obj:
+                cell_obj = CellsInfo.objects.filter(name=cell_id).first()
+
+            if not cell_obj or cell_obj.lat is None or cell_obj.lon is None:
+                not_found.append(cell_id)
+                continue
+
+            distance_km = haversine_km(customer_lat, customer_lon, cell_obj.lat, cell_obj.lon)
+            distance_rows.append({
+                'cell_id': cell_id,
+                'cell_name': cell_obj.name or (cell_obj.cell or ''),
+                'latitude': float(cell_obj.lat),
+                'longitude': float(cell_obj.lon),
+                'region': cell_obj.district or cell_obj.province or '',
+                'distance_km': round(distance_km, 3),
+            })
+
+        distance_rows.sort(key=lambda row: row['distance_km'])
+
+        return JsonResponse({
+            'success': True,
+            'customer': {
+                'id': customer.id,
+                'msisdn': customer.msisdn,
+                'name': customer.customer_name,
+                'latitude': customer_lat,
+                'longitude': customer_lon,
+            },
+            'distances': distance_rows,
+            'not_found_cells': not_found,
+        })
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'Server error: {str(e)}'})
 
