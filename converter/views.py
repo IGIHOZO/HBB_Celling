@@ -667,17 +667,37 @@ def suggest_nearest_cells(request):
                 'error': 'cells_info table is missing in database',
             })
 
-        msisdn = request.GET.get('msisdn', '').strip()
-        if not msisdn:
-            return JsonResponse({'success': False, 'error': 'msisdn is required'})
+        # Check if this is a custom coordinate request or MSISDN request
+        latitude = request.GET.get('latitude')
+        longitude = request.GET.get('longitude')
+        
+        if latitude and longitude:
+            # Custom coordinate request
+            try:
+                customer_lat = float(latitude)
+                customer_lon = float(longitude)
+                customer_name = f"Custom Coordinates ({customer_lat:.6f}, {customer_lon:.6f})"
+                customer_msisdn = "CUSTOM"
+            except ValueError:
+                return JsonResponse({'success': False, 'error': 'Invalid latitude/longitude values'})
+        else:
+            # MSISDN request
+            msisdn = request.GET.get('msisdn', '').strip()
+            if not msisdn:
+                return JsonResponse({'success': False, 'error': 'msisdn is required'})
 
-        customer = HBBCustomer.objects.filter(msisdn=msisdn).first()
-        if not customer:
-            return JsonResponse({'success': False, 'error': f'Customer {msisdn} not found'})
+            customer = HBBCustomer.objects.filter(msisdn=msisdn).first()
+            if not customer:
+                return JsonResponse({'success': False, 'error': f'Customer {msisdn} not found'})
 
-        coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
-        if not coord or coord.latitude is None or coord.longitude is None:
-            return JsonResponse({'success': False, 'error': f'Coordinates not available for {msisdn}'})
+            coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
+            if not coord or coord.latitude is None or coord.longitude is None:
+                return JsonResponse({'success': False, 'error': f'Coordinates not available for {msisdn}'})
+
+            customer_lat = float(coord.latitude)
+            customer_lon = float(coord.longitude)
+            customer_name = customer.customer_name or 'Unknown'
+            customer_msisdn = customer.msisdn
 
         towers = CellsInfo.objects.exclude(lat__isnull=True).exclude(lon__isnull=True)
         if not towers.exists():
@@ -685,9 +705,6 @@ def suggest_nearest_cells(request):
                 'success': False,
                 'error': 'No cells found in cells_info table',
             })
-
-        customer_lat = float(coord.latitude)
-        customer_lon = float(coord.longitude)
         nearest = []
         for tower in towers:
             distance_km = haversine_km(customer_lat, customer_lon, tower.lat, tower.lon)
@@ -702,18 +719,35 @@ def suggest_nearest_cells(request):
             })
 
         nearest.sort(key=lambda row: row['distance_km'])
-        nearest = nearest[:10]
+        
+        # Get limit parameter, default to 10
+        limit = int(request.GET.get('limit', 10))
+        nearest = nearest[:limit]
+
+        # Prepare customer data based on request type
+        customer_data = {
+            'latitude': customer_lat,
+            'longitude': customer_lon,
+        }
+        
+        if latitude and longitude:
+            # Custom coordinate request
+            customer_data.update({
+                'msisdn': 'CUSTOM',
+                'name': customer_name,
+            })
+        else:
+            # MSISDN request
+            customer_data.update({
+                'id': customer.id,
+                'msisdn': customer.msisdn,
+                'name': customer_name,
+                'current_cells': coord.custom3_cells,
+            })
 
         return JsonResponse({
             'success': True,
-            'customer': {
-                'id': customer.id,
-                'msisdn': customer.msisdn,
-                'name': customer.customer_name,
-                'latitude': customer_lat,
-                'longitude': customer_lon,
-                'current_cells': coord.custom3_cells,
-            },
+            'customer': customer_data,
             'suggested_cells': nearest,
         })
     except Exception as e:
@@ -764,24 +798,50 @@ def registered_cell_distances(request):
         if not cells_info_table_exists():
             return JsonResponse({'success': False, 'error': 'cells_info table is missing in database'})
 
-        msisdn = request.GET.get('msisdn', '').strip()
-        if not msisdn:
-            return JsonResponse({'success': False, 'error': 'msisdn is required'})
+        # Check if this is a custom coordinate request or MSISDN request
+        latitude = request.GET.get('latitude')
+        longitude = request.GET.get('longitude')
+        
+        if latitude and longitude:
+            # Custom coordinate request
+            try:
+                customer_lat = float(latitude)
+                customer_lon = float(longitude)
+                customer_name = f"Custom Coordinates ({customer_lat:.6f}, {customer_lon:.6f})"
+                customer_msisdn = "CUSTOM"
+            except ValueError:
+                return JsonResponse({'success': False, 'error': 'Invalid latitude/longitude values'})
+        else:
+            # MSISDN request
+            msisdn = request.GET.get('msisdn', '').strip()
+            if not msisdn:
+                return JsonResponse({'success': False, 'error': 'msisdn is required'})
 
-        customer = HBBCustomer.objects.filter(msisdn=msisdn).first()
-        if not customer:
-            return JsonResponse({'success': False, 'error': f'Customer {msisdn} not found'})
+            customer = HBBCustomer.objects.filter(msisdn=msisdn).first()
+            if not customer:
+                return JsonResponse({'success': False, 'error': f'Customer {msisdn} not found'})
 
-        coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
-        if not coord or coord.latitude is None or coord.longitude is None:
-            return JsonResponse({'success': False, 'error': f'Coordinates not available for {msisdn}'})
+            coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
+            if not coord or coord.latitude is None or coord.longitude is None:
+                return JsonResponse({'success': False, 'error': f'Coordinates not available for {msisdn}'})
 
+            customer_lat = float(coord.latitude)
+            customer_lon = float(coord.longitude)
+            customer_name = customer.customer_name or 'Unknown'
+            customer_msisdn = customer.msisdn
+
+        coord = CustomerCoordinate.objects.filter(msisdn=customer_msisdn).first()
         registered_cells = parse_custom3_cells(coord.custom3 or '')
         if not registered_cells:
-            return JsonResponse({'success': True, 'customer': {'msisdn': msisdn}, 'distances': []})
+            return JsonResponse({'success': True, 'customer': {'msisdn': customer_msisdn}, 'distances': []})
 
-        customer_lat = float(coord.latitude)
-        customer_lon = float(coord.longitude)
+        towers = CellsInfo.objects.exclude(lat__isnull=True).exclude(lon__isnull=True)
+        if not towers.exists():
+            return JsonResponse({
+                'success': False,
+                'error': 'No cells found in cells_info table',
+            })
+
         distance_rows = []
         not_found = []
 

@@ -482,15 +482,15 @@ html, body {
 
     <div class="sidebar-section-label">Main</div>
 
-    <a href="/" class="nav-item active">
+    <a href="" class="nav-item active">
       <i class="fas fa-home"></i>
       <span>Dashboard</span>
     </a>
-    <a href="/converter/" class="nav-item">
+    <a href="converter/" class="nav-item">
       <i class="fas fa-exchange-alt"></i>
       <span>Converter</span>
     </a>
-    <a href="/coordinates/" class="nav-item">
+    <a href="coordinates/" class="nav-item">
       <i class="fas fa-map-marker-alt"></i>
       <span>Coordinates</span>
     </a>
@@ -498,11 +498,11 @@ html, body {
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Quick Actions</div>
 
-    <div class="nav-item" onclick="window.open('/converter/', '_blank')">
+    <div class="nav-item" onclick="window.open('/hbb/converter/', '_blank')">
       <i class="fas fa-rocket"></i>
       <span>Quick Convert</span>
     </div>
-    <div class="nav-item" onclick="window.open('/coordinates/', '_blank')">
+    <div class="nav-item" onclick="window.open('/hbb/coordinates/', '_blank')">
       <i class="fas fa-search-location"></i>
       <span>Find Customer</span>
     </div>
@@ -537,14 +537,14 @@ html, body {
 
       <!-- DASHBOARD CARDS -->
       <div class="dashboard-grid">
-        <a href="/converter/" class="dashboard-card">
+        <a href="converter/" class="dashboard-card">
           <div class="card-icon icon-blue">
             <i class="fas fa-exchange-alt"></i>
           </div>
           <div class="card-content">
             <div class="card-title">EXML Converter</div>
             <div class="card-desc">
-              Transform EXML export files into structured XML. Process subscriber records and export to CSV for analysis.
+              Transform EXML export files into structured XML. Process subscriber records and export to CSV for data import.
             </div>
             <div class="card-action">
               Open Converter <i class="fas fa-arrow-right"></i>
@@ -552,14 +552,14 @@ html, body {
           </div>
         </a>
 
-        <a href="/coordinates/" class="dashboard-card">
+        <a href="coordinates/" class="dashboard-card">
           <div class="card-icon icon-teal">
             <i class="fas fa-map-marker-alt"></i>
           </div>
           <div class="card-content">
             <div class="card-title">Coordinates Manager</div>
             <div class="card-desc">
-              Manage customer coordinates and cell tower assignments. Check location data and track subscriber positions.
+              Manage customer coordinates and cell assignments. Check location data, track subscriber positions, and get cell suggestions.
             </div>
             <div class="card-action">
               Open Coordinates <i class="fas fa-arrow-right"></i>

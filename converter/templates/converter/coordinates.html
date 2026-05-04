@@ -54,6 +54,194 @@ html, body {
   line-height: 1.5;
 }
 
+/* ─── FULLSCREEN LOADING OVERLAY ─── */
+#appLoadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(7, 15, 30, 0.4);
+  backdrop-filter: blur(8px) saturate(0.8);
+  -webkit-backdrop-filter: blur(8px) saturate(0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#appLoadingOverlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 40px 48px 36px;
+  min-width: 360px;
+  max-width: 420px;
+  text-align: center;
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 1px 0 rgba(255,255,255,0.12) inset;
+  animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.88) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.loader-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.loader-brand-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-bright) 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(37, 137, 232, 0.45);
+}
+
+.loader-brand-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.loader-brand-text {
+  text-align: left;
+}
+
+.loader-brand-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.2px;
+}
+
+.loader-brand-text span {
+  font-size: 11px;
+  color: rgba(255,255,255,0.38);
+  font-family: var(--font-mono);
+}
+
+/* Animated ring */
+.loader-ring-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+}
+
+.loader-ring-wrap svg {
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+}
+
+.loader-ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.08);
+  stroke-width: 4;
+}
+
+.loader-ring-fill {
+  fill: none;
+  stroke: url(#ringGradient);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 188.5;
+  stroke-dashoffset: 188.5;
+  transition: stroke-dashoffset 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loader-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-ring-pct {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+/* Step message */
+.loader-step-msg {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 20px;
+  min-height: 20px;
+  letter-spacing: -0.1px;
+  transition: opacity 0.25s ease;
+}
+
+/* Progress bar */
+.loader-bar-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.loader-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--blue-bright) 60%, #7dd3fc 100%);
+  width: 0%;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px rgba(37, 137, 232, 0.7);
+}
+
+/* Step dots */
+.loader-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.loader-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.loader-dot.done {
+  background: var(--teal);
+  transform: scale(1.1);
+}
+
+.loader-dot.active {
+  background: var(--blue-bright);
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(37, 137, 232, 0.7);
+}
+
 /* ─── LAYOUT ─── */
 .app {
   display: flex;
@@ -478,10 +666,7 @@ table.hbb thead th {
   user-select: none;
 }
 
-table.hbb thead th.sortable {
-  cursor: pointer;
-}
-
+table.hbb thead th.sortable { cursor: pointer; }
 table.hbb thead th.sortable:hover { color: var(--gray-700); }
 table.hbb thead th .sort-icon {
   display: inline-block;
@@ -511,47 +696,45 @@ table.hbb tbody td.dim { color: var(--gray-400); font-size: 12.5px; }
 table.hbb tbody tr.expand-row td { padding: 0; }
 table.hbb tbody tr.expand-row:hover > td { background: inherit; }
 
-        /* ── Expand panel ── */
-        .expand-inner {
-            padding: 16px 20px;
-            background: #fafbfc;
-            border-top: 1px solid var(--border-light);
-        }
-        .expand-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-tertiary);
-            margin-bottom: 10px;
-            letter-spacing: 0.02em;
-        }
+.expand-inner {
+  padding: 16px 20px;
+  background: #fafbfc;
+  border-top: 1px solid var(--gray-200);
+}
+.expand-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-500);
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
 
-        /* ── Mini table ── */
-        table.mini {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12.5px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-        }
-        table.mini thead th {
-            background: var(--surface);
-            padding: 7px 12px;
-            font-weight: 500;
-            font-size: 11.5px;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            text-align: left;
-            white-space: nowrap;
-        }
-        table.mini tbody td {
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border-light);
-            color: var(--text);
-            white-space: nowrap;
-        }
-        table.mini tbody tr:last-child td { border-bottom: none; }
-        table.mini tbody tr:hover td { background: var(--surface-secondary); }
+table.mini {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+table.mini thead th {
+  background: var(--gray-50);
+  padding: 7px 12px;
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--gray-500);
+  border-bottom: 1px solid var(--gray-200);
+  text-align: left;
+  white-space: nowrap;
+}
+table.mini tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+  white-space: nowrap;
+}
+table.mini tbody tr:last-child td { border-bottom: none; }
+table.mini tbody tr:hover td { background: var(--gray-50); }
 
 /* ─── PILLS / BADGES ─── */
 .pill {
@@ -579,7 +762,6 @@ table.hbb tbody tr.expand-row:hover > td { background: inherit; }
   color: var(--teal);
   border: 1px solid rgba(15,138,110,.2);
 }
-
 .pill-locked::before { background: var(--teal); }
 
 .pill-unlocked {
@@ -587,7 +769,6 @@ table.hbb tbody tr.expand-row:hover > td { background: inherit; }
   color: var(--red);
   border: 1px solid rgba(185,28,28,.2);
 }
-
 .pill-unlocked::before { background: var(--red); }
 
 .pill-notfound {
@@ -595,7 +776,6 @@ table.hbb tbody tr.expand-row:hover > td { background: inherit; }
   color: var(--gray-500);
   border: 1px solid var(--gray-200);
 }
-
 .pill-notfound::before { background: var(--gray-400); }
 
 .id-chip {
@@ -608,7 +788,6 @@ table.hbb tbody tr.expand-row:hover > td { background: inherit; }
   display: inline-block;
 }
 
-
 /* ─── NOTICE BOXES ─── */
 .notice {
   display: flex;
@@ -619,21 +798,17 @@ table.hbb tbody tr.expand-row:hover > td { background: inherit; }
   font-size: 13px;
   margin-bottom: 14px;
 }
-
 .notice-icon { flex-shrink: 0; margin-top: 1px; }
-
 .notice-warn {
   background: var(--amber-pale);
   border: 1px solid rgba(184,110,0,.2);
   color: var(--amber);
 }
-
 .notice-info {
   background: var(--blue-pale);
   border: 1px solid rgba(26,110,189,.2);
   color: var(--blue);
 }
-
 .notice-success {
   background: var(--teal-pale);
   border: 1px solid rgba(15,138,110,.2);
@@ -725,7 +900,6 @@ input[type="checkbox"] {
   color: #fff;
   font-weight: 500;
 }
-
 .pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .pag-ellipsis { font-size: 13px; color: var(--gray-400); padding: 0 2px; }
 
@@ -735,7 +909,6 @@ input[type="checkbox"] {
   padding: 48px 20px;
   color: var(--gray-500);
 }
-
 .empty-state i { margin-bottom: 12px; color: var(--gray-400); }
 .empty-state p { font-size: 14px; }
 
@@ -748,7 +921,6 @@ input[type="checkbox"] {
   border-radius: 50%;
   animation: spin .65s linear infinite;
 }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ─── SCROLLBAR STYLING ─── */
@@ -758,28 +930,10 @@ input[type="checkbox"] {
 ::-webkit-scrollbar-thumb:hover { background: var(--gray-300); }
 
 /* Cell Count Display */
-.cells-column {
-  max-width: 120px;
-  min-width: 80px;
-  text-align: center;
-}
-
-.cell-count {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--blue);
-}
-
-.cell-label {
-  font-size: 11px;
-  color: var(--gray);
-  margin-left: 2px;
-}
-
-.no-cells {
-  color: var(--gray-300);
-  font-style: italic;
-}
+.cells-column { max-width: 120px; min-width: 80px; text-align: center; }
+.cell-count { font-weight: 600; font-size: 14px; color: var(--blue); }
+.cell-label { font-size: 11px; color: var(--gray-500); margin-left: 2px; }
+.no-cells { color: var(--gray-300); font-style: italic; }
 
 /* DataTables Pagination Fix */
 .dataTables_wrapper .dataTables_paginate {
@@ -794,7 +948,7 @@ input[type="checkbox"] {
   text-align: center;
   clear: both;
   float: none !important;
-  color: var(--gray);
+  color: var(--gray-500);
   font-size: 14px;
 }
 
@@ -803,21 +957,21 @@ input[type="checkbox"] {
   padding: 8px 12px;
   border: 1px solid var(--navy-mid);
   border-radius: 6px;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--gray-50);
+  color: var(--gray-700) !important;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-  background: var(--blue);
-  color: white;
+  background: var(--blue) !important;
+  color: white !important;
   border-color: var(--blue);
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  background: var(--blue);
-  color: white;
+  background: var(--blue) !important;
+  color: white !important;
   border-color: var(--blue);
 }
 
@@ -827,21 +981,15 @@ input[type="checkbox"] {
 }
 
 .dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter {
-  margin-bottom: 15px;
-}
+.dataTables_wrapper .dataTables_filter { margin-bottom: 15px; }
 
-.dataTables_wrapper .dt-buttons {
-  margin-bottom: 15px;
-}
+.dataTables_wrapper .dt-buttons { margin-bottom: 15px; }
 
 /* Modal Styles */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -850,20 +998,18 @@ input[type="checkbox"] {
 
 .modal-backdrop {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,.5);
   backdrop-filter: blur(2px);
 }
 
 .modal-content {
   position: relative;
-  background: #ffffff;
+  background: #fff;
   border: 1px solid var(--gray-200);
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
   max-width: 800px;
   width: 90%;
   max-height: 80vh;
@@ -872,14 +1018,8 @@ input[type="checkbox"] {
 }
 
 @keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .modal-header {
@@ -888,14 +1028,14 @@ input[type="checkbox"] {
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid var(--gray-200);
-  background: #f8f9fa;
+  background: var(--gray-50);
 }
 
 .modal-header h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--gray-900);
 }
 
 .modal-close {
@@ -904,20 +1044,20 @@ input[type="checkbox"] {
   padding: 8px;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--gray);
+  color: var(--gray-500);
   transition: all 0.2s;
 }
 
 .modal-close:hover {
   background: var(--gray-100);
-  color: var(--text);
+  color: var(--gray-900);
 }
 
 .modal-body {
   padding: 24px;
   max-height: calc(80vh - 80px);
   overflow-y: auto;
-  background: #ffffff;
+  background: #fff;
 }
 
 .loading-spinner {
@@ -926,7 +1066,7 @@ input[type="checkbox"] {
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: var(--gray);
+  color: var(--gray-500);
 }
 
 .loading-spinner .spinner {
@@ -937,37 +1077,6 @@ input[type="checkbox"] {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 12px;
-}
-
-.mini {
-  font-size: 13px;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.mini th {
-  background: var(--gray-50);
-  padding: 8px 12px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--text);
-  border-bottom: 2px solid var(--gray-200);
-}
-
-.mini td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--gray-100);
-}
-
-.mini tr:hover {
-  background: var(--gray-50);
-}
-
-.expand-label {
-  font-weight: 600;
-  color: var(--navy);
-  margin-bottom: 12px;
-  font-size: 14px;
 }
 
 /* Nearest Cells Modal Styles */
@@ -984,13 +1093,13 @@ input[type="checkbox"] {
   margin: 0 0 4px 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--gray-900);
 }
 
 .customer-coords {
   margin: 0;
   font-size: 13px;
-  color: var(--gray);
+  color: var(--gray-500);
 }
 
 .selection-info {
@@ -1004,7 +1113,7 @@ input[type="checkbox"] {
   font-weight: 500;
   color: var(--blue);
   padding: 4px 8px;
-  background: var(--blue-50);
+  background: var(--blue-pale);
   border-radius: 4px;
 }
 
@@ -1027,7 +1136,7 @@ input[type="checkbox"] {
   padding: 10px 12px;
   text-align: left;
   font-weight: 600;
-  color: var(--text);
+  color: var(--gray-700);
   border-bottom: 2px solid var(--gray-200);
   position: sticky;
   top: 0;
@@ -1040,13 +1149,8 @@ input[type="checkbox"] {
   vertical-align: middle;
 }
 
-.cells-table tr:hover {
-  background: var(--gray-50);
-}
-
-.cells-table tr.selected {
-  background: var(--blue-50);
-}
+.cells-table tr:hover { background: var(--gray-50); }
+.cells-table tr.selected { background: var(--blue-pale); }
 
 .signal-strength {
   display: inline-block;
@@ -1056,24 +1160,73 @@ input[type="checkbox"] {
   font-weight: 500;
 }
 
-.signal-excellent {
-  background: var(--green-100);
-  color: var(--green-700);
+.signal-excellent { background: #dcfce7; color: #15803d; }
+.signal-good      { background: var(--blue-pale); color: var(--blue); }
+.signal-fair      { background: var(--amber-pale); color: var(--amber); }
+.signal-poor      { background: var(--red-pale); color: var(--red); }
+
+/* Coordinate Checker Modal Styles */
+.coordinate-input-section {
+  margin-bottom: 20px;
 }
 
-.signal-good {
-  background: var(--blue-100);
-  color: var(--blue-700);
+.input-group {
+  text-align: center;
 }
 
-.signal-fair {
-  background: var(--amber-100);
-  color: var(--amber-700);
+.input-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  justify-content: center;
 }
 
-.signal-poor {
-  background: var(--red-100);
-  color: var(--red-700);
+.input-field {
+  flex: 1;
+  max-width: 250px;
+}
+
+.input-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+.coord-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.coord-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(26,110,189,0.1);
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.results-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.coord-display {
+  font-size: 14px;
+  color: var(--gray-600);
 }
 
 .modal-actions {
@@ -1082,12 +1235,6 @@ input[type="checkbox"] {
   align-items: center;
   padding: 16px 0 0 0;
   border-top: 1px solid var(--gray-200);
-}
-
-.manual-input-group {
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .manual-input {
@@ -1101,13 +1248,10 @@ input[type="checkbox"] {
 .manual-input:focus {
   outline: none;
   border-color: var(--blue);
-  box-shadow: 0 0 0 2px var(--blue-100);
+  box-shadow: 0 0 0 2px rgba(26,110,189,.1);
 }
 
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
+.action-buttons { display: flex; gap: 8px; }
 
 .btn-secondary {
   background: var(--gray-100);
@@ -1117,12 +1261,29 @@ input[type="checkbox"] {
 
 .btn-secondary:hover {
   background: var(--gray-200);
-  color: var(--gray-800);
+  color: var(--gray-900);
 }
 
-.btn-sm {
-  padding: 4px 8px;
-  font-size: 12px;
+/* Accent Button for Check Coordinates */
+.btn-accent {
+  background: linear-gradient(135deg, #0aab4b 0%, #067e3e 100%);
+  color: white;
+  border: 2px solid #0aab4b;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  position: relative;
+}
+
+.btn-accent:hover {
+  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  border-color: #d97706;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-accent:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.3);
 }
 
 /* Responsive */
@@ -1130,29 +1291,70 @@ input[type="checkbox"] {
   .sidebar { transform: translateX(-100%); }
   .main { margin-left: 0; }
   .sidebar.active { transform: translateX(0); }
-  .menu-toggle { display: block; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
-  .dashboard-grid { grid-template-columns: 1fr; }
-  .table-scroll { border-radius: 12px; }
-  .dataTables_wrapper .dataTables_paginate .paginate_button {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
+  .loader-card { min-width: 280px; padding: 28px 24px 24px; }
 }
 
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
   .stat-card { padding: 16px; }
-  .btn-distance-check, .btn-suggest { font-size: 12px; padding: 8px 12px; }
-  .table-card { padding: 12px; }
-  .hbb th, .hbb td { padding: 8px 6px; font-size: 13px; }
-  .dataTables_wrapper .dataTables_info {
-    font-size: 12px;
-  }
 }
 </style>
 </head>
 <body>
+
+<!-- ═══ FULLSCREEN LOADING OVERLAY ═══ -->
+<div id="appLoadingOverlay">
+  <svg style="position:absolute;width:0;height:0">
+    <defs>
+      <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#1a6ebd"/>
+        <stop offset="100%" stop-color="#7dd3fc"/>
+      </linearGradient>
+    </defs>
+  </svg>
+  <div class="loader-card">
+    <div class="loader-brand">
+      <div class="loader-brand-icon">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+      </div>
+      <div class="loader-brand-text">
+        <strong>HBB Manager</strong>
+        <span>Cell Management System</span>
+      </div>
+    </div>
+
+    <!-- Ring progress -->
+    <div class="loader-ring-wrap">
+      <svg viewBox="0 0 72 72">
+        <circle class="loader-ring-bg" cx="36" cy="36" r="30"/>
+        <circle class="loader-ring-fill" id="loaderRing" cx="36" cy="36" r="30"/>
+      </svg>
+      <div class="loader-ring-center">
+        <span class="loader-ring-pct" id="loaderPct">0%</span>
+      </div>
+    </div>
+
+    <!-- Step message -->
+    <div class="loader-step-msg" id="loaderMsg">Initializing page…</div>
+
+    <!-- Linear bar -->
+    <div class="loader-bar-track">
+      <div class="loader-bar-fill" id="loaderBar"></div>
+    </div>
+
+    <!-- Step dots -->
+    <div class="loader-steps" id="loaderDots">
+      <div class="loader-dot active" data-step="0"></div>
+      <div class="loader-dot" data-step="1"></div>
+      <div class="loader-dot" data-step="2"></div>
+      <div class="loader-dot" data-step="3"></div>
+      <div class="loader-dot" data-step="4"></div>
+      <div class="loader-dot" data-step="5"></div>
+    </div>
+  </div>
+</div>
+<!-- ═══ END OVERLAY ═══ -->
 
 <div class="app">
 
@@ -1168,15 +1370,15 @@ input[type="checkbox"] {
 
     <div class="sidebar-section-label">Main</div>
 
-    <a href="/" class="nav-item">
+    <a href="/hbb/" class="nav-item">
       <i class="fas fa-home"></i>
       <span>Home</span>
     </a>
-    <a href="/converter/" class="nav-item">
+    <a href="/hbb/converter/" class="nav-item">
       <i class="fas fa-exchange-alt"></i>
       <span>Converter</span>
     </a>
-    <a href="/coordinates/" class="nav-item active">
+    <a href="/hbb/coordinates/" class="nav-item active">
       <i class="fas fa-map-marker-alt"></i>
       <span>Coordinates</span>
     </a>
@@ -1223,7 +1425,10 @@ input[type="checkbox"] {
         <p>Manage customer locations and cell tower assignments</p>
       </div>
       <div class="topbar-right">
-        <div class="spinner" id="spinnerGlobal"></div>
+        <div class="spinner" id="spinnerGlobal" style="display:none"></div>
+        <button class="btn btn-sm btn-accent" onclick="openCoordinateChecker()">
+          <i class="fas fa-search-location"></i> Check Coordinates
+        </button>
         <button class="btn btn-sm btn-primary" onclick="exportData()">
           <i class="fas fa-download"></i> Export
         </button>
@@ -1231,913 +1436,416 @@ input[type="checkbox"] {
     </header>
 
     <!-- CONTENT -->
-    <div class="content">
+    <div class="content" id="mainContent">
 
-        <!-- Stat cards -->
-        <div class="stats-grid">
-            <div class="stat-card active" data-panel="all">
-                <div class="stat-label">All customers</div>
-                <div class="stat-num blue">{{ customers|length|intcomma }}</div>
-                <div class="stat-trend">All records</div>
-            </div>
-            <div class="stat-card" data-panel="found">
-                <div class="stat-label">Found in coords</div>
-                <div class="stat-num green">{{ found_customers|length|intcomma }}</div>
-                <div class="stat-trend">With coordinates</div>
-            </div>
-            <div class="stat-card" data-panel="not-found">
-                <div class="stat-label">Not found</div>
-                <div class="stat-num red">{{ not_found_customers|length|intcomma }}</div>
-                <div class="stat-trend">Missing coordinates</div>
-            </div>
-            <div class="stat-card" data-panel="unlocked">
-                <div class="stat-label">Unlocked</div>
-                <div class="stat-num amber">{{ unlocked_customers|length|intcomma }}</div>
-                <div class="stat-trend">Needs cell assignment</div>
-            </div>
+      <!-- Stat cards -->
+      <div class="stats-grid">
+        <div class="stat-card active" data-panel="all">
+          <div class="stat-label">All customers</div>
+          <div class="stat-num blue">{{ customers|length|intcomma }}</div>
+          <div class="stat-trend">All records</div>
         </div>
-
-        <!-- ═══ Panel: All ═══ -->
-        <div id="panel-all" class="panel active">
-            <div class="toolbar">
-                <div class="search-wrap">
-                    <i class="fas fa-search"></i>
-                    <input class="search-input" type="text" placeholder="Search by name, MSISDN, product…"
-                        oninput="filterTable('all', this.value)">
-                </div>
-                <span class="row-count" id="count-all"></span>
-            </div>
-            <div class="table-card">
-                <div class="table-scroll">
-                    <table class="hbb" id="tbl-all">
-                        <thead>
-                            <tr>
-                                <th class="sortable" data-col="0" data-key="id">ID <span class="sort-icon"></span></th>
-                                <th class="sortable" data-col="1" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
-                                <th class="sortable" data-col="2" data-key="name">Customer name <span class="sort-icon"></span></th>
-                                <th class="sortable" data-col="3" data-key="product">Product <span class="sort-icon"></span></th>
-                                <th>Cells</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-all">
-                            {% for row in all_customers %}
-                            <tr>
-                                <td><span class="id-chip">{{ row.customer.id }}</span></td>
-                                <td>{{ row.customer.msisdn|default:"-" }}</td>
-                                <td>{{ row.customer.customer_name|default:"-" }}</td>
-                                <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
-                                <td class="cells-column">
-                                    {% if row.custom3 %}
-                                        {% with cell_count=row.custom3.split|length %}
-                                            <span class="cell-count">{{ cell_count|intcomma }}</span>
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="no-cells">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if row.status == 'Locked' %}
-                                        <span class="pill pill-locked">Locked</span>
-                                    {% elif row.status == 'UnLocked' %}
-                                        <span class="pill pill-unlocked">Unlocked</span>
-                                    {% else %}
-                                        <span class="pill pill-notfound">{{ row.status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if row.status == 'Locked' %}
-                                        <button
-                                            class="btn btn-distance-check"
-                                            data-msisdn="{{ row.customer.msisdn|default:'' }}">
-                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                                            </svg>
-                                            View distances
-                                        </button>
-                                    {% else %}
-                                        <span class="no-actions">-</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="6">
-                                <div class="empty-state">
-                                    <i class="fas fa-inbox" style="font-size: 32px;"></i>
-                                    <p>No customers found.</p>
-                                </div>
-                            </td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination" id="pag-all" style="display:none">
-                    <span class="pag-info" id="pag-info-all"></span>
-                    <div class="pag-controls" id="pag-ctrl-all"></div>
-                </div>
-            </div>
+        <div class="stat-card" data-panel="found">
+          <div class="stat-label">Found in coords</div>
+          <div class="stat-num green">{{ found_customers|length|intcomma }}</div>
+          <div class="stat-trend">With coordinates</div>
         </div>
-
-        <!-- ═══ Panel: Found ═══ -->
-        <div id="panel-found" class="panel">
-            <div class="toolbar">
-                <div class="search-wrap">
-                    <i class="fas fa-search"></i>
-                    <input class="search-input" type="text" placeholder="Search…"
-                        oninput="filterTable('found', this.value)">
-                </div>
-                <span class="row-count" id="count-found"></span>
-            </div>
-            <div class="table-card">
-                <div class="table-scroll">
-                    <table class="hbb" id="tbl-found">
-                        <thead>
-                            <tr>
-                                <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
-                                <th>Lock status</th>
-                                <th>Cells</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-found">
-                            {% for row in found_customers %}
-                            <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
-                                <td><span class="id-chip">{{ row.customer.id }}</span></td>
-                                <td>{{ row.customer.msisdn|default:"-" }}</td>
-                                <td>{{ row.customer.customer_name|default:"-" }}</td>
-                                <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
-                                <td>
-                                    {% if row.is_locked %}
-                                        <span class="pill pill-locked">Locked</span>
-                                    {% else %}
-                                        <span class="pill pill-unlocked">Unlocked</span>
-                                    {% endif %}
-                                </td>
-                                <td class="cells-column">
-                                    {% if row.custom3 %}
-                                        {% with cell_count=row.custom3.split|length %}
-                                            <span class="cell-count">{{ cell_count|intcomma }}</span>
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="no-cells">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <button
-                                        class="btn btn-distance-check"
-                                        data-msisdn="{{ row.customer.msisdn|default:'' }}"
-                                        {% if not row.is_locked %}disabled{% endif %}>
-                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                                        </svg>
-                                        View distances
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="6">
-                                <div class="empty-state"><p>No customers found.</p></div>
-                            </td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination" id="pag-found" style="display:none">
-                    <span class="pag-info" id="pag-info-found"></span>
-                    <div class="pag-controls" id="pag-ctrl-found"></div>
-                </div>
-            </div>
+        <div class="stat-card" data-panel="not-found">
+          <div class="stat-label">Not found</div>
+          <div class="stat-num red">{{ not_found_customers|length|intcomma }}</div>
+          <div class="stat-trend">Missing coordinates</div>
         </div>
-
-        <!-- ═══ Panel: Not Found ═══ -->
-        <div id="panel-not-found" class="panel">
-            <div class="toolbar">
-                <div class="search-wrap">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    <input class="search-input" type="text" placeholder="Search…"
-                        oninput="filterTable('not-found', this.value)">
-                </div>
-                <span class="row-count" id="count-not-found"></span>
-            </div>
-            <div class="table-card">
-                <div class="table-scroll">
-                    <table class="hbb" id="tbl-not-found">
-                        <thead>
-                            <tr>
-                                <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-not-found">
-                            {% for customer in not_found_customers %}
-                            <tr>
-                                <td><span class="id-chip">{{ customer.id }}</span></td>
-                                <td>{{ customer.msisdn|default:"-" }}</td>
-                                <td>{{ customer.customer_name|default:"-" }}</td>
-                                <td class="muted">{{ customer.product_name|default:"-" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="4">
-                                <div class="empty-state"><p>No customers found.</p></div>
-                            </td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination" id="pag-not-found" style="display:none">
-                    <span class="pag-info" id="pag-info-not-found"></span>
-                    <div class="pag-controls" id="pag-ctrl-not-found"></div>
-                </div>
-            </div>
+        <div class="stat-card" data-panel="unlocked">
+          <div class="stat-label">Unlocked</div>
+          <div class="stat-num amber">{{ unlocked_customers|length|intcomma }}</div>
+          <div class="stat-trend">Needs cell assignment</div>
         </div>
+      </div>
 
-        <!-- ═══ Panel: Unlocked ═══ -->
-        <div id="panel-unlocked" class="panel">
-            {% if not has_cell_towers_table %}
-            <div class="notice notice-warn">
-                <svg class="notice-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-                <div><strong>cells_info table not found.</strong> Please ensure this table exists with lat/lon populated.</div>
-            </div>
-            {% endif %}
-            <div class="notice notice-info">
-                <svg class="notice-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <div>For unlocked customers, click <strong>Suggest nearest cells</strong> to find the 10 closest cell towers, then select and save.</div>
-            </div>
-            <div class="toolbar">
-                <div class="search-wrap">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    <input class="search-input" type="text" placeholder="Search…"
-                        oninput="filterTable('unlocked', this.value)">
-                </div>
-                <span class="row-count" id="count-unlocked"></span>
-            </div>
-            <div class="table-card">
-                <div class="table-scroll">
-                    <table class="hbb" id="tbl-unlocked">
-                        <thead>
-                            <tr>
-                                <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
-                                <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
-                                <th>Coordinates</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-unlocked">
-                            {% for row in unlocked_customers %}
-                            <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
-                                <td><span class="id-chip">{{ row.customer.id }}</span></td>
-                                <td>{{ row.customer.msisdn|default:"-" }}</td>
-                                <td>{{ row.customer.customer_name|default:"-" }}</td>
-                                <td class="dim">
-                                    {% if row.has_coordinates %}
-                                        {{ row.latitude }}, {{ row.longitude }}
-                                    {% else %}
-                                        —
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <button
-                                        class="btn btn-primary btn-suggest"
-                                        data-msisdn="{{ row.customer.msisdn|default:'' }}"
-                                        data-customer-id="{{ row.customer.id }}"
-                                        {% if not row.has_coordinates or not row.customer.msisdn %}disabled{% endif %}>
-                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
-                                        Suggest nearest cells
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="6">
-                                <div class="empty-state"><p>No unlocked customers found.</p></div>
-                            </td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination" id="pag-unlocked" style="display:none">
-                    <span class="pag-info" id="pag-info-unlocked"></span>
-                    <div class="pag-controls" id="pag-ctrl-unlocked"></div>
-                </div>
-            </div>
+      <!-- ═══ Panel: All ═══ -->
+      <div id="panel-all" class="panel active">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input class="search-input" type="text" placeholder="Search by name, MSISDN, product…"
+                   oninput="filterTable('all', this.value)">
+          </div>
+          <span class="row-count" id="count-all"></span>
         </div>
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="hbb" id="tbl-all">
+              <thead>
+                <tr>
+                  <th class="sortable" data-col="0" data-key="id">ID <span class="sort-icon"></span></th>
+                  <th class="sortable" data-col="1" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                  <th class="sortable" data-col="2" data-key="name">Customer name <span class="sort-icon"></span></th>
+                  <th class="sortable" data-col="3" data-key="product">Product <span class="sort-icon"></span></th>
+                  <th>Cells</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-all">
+                {% for row in all_customers %}
+                <tr>
+                  <td><span class="id-chip">{{ row.customer.id }}</span></td>
+                  <td>{{ row.customer.msisdn|default:"-" }}</td>
+                  <td>{{ row.customer.customer_name|default:"-" }}</td>
+                  <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
+                  <td class="cells-column">
+                    {% if row.custom3 %}
+                      {% with cell_count=row.custom3.split|length %}
+                        <span class="cell-count">{{ cell_count|intcomma }}</span>
+                      {% endwith %}
+                    {% else %}
+                      <span class="no-cells">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if row.status == 'Locked' %}
+                      <span class="pill pill-locked">Locked</span>
+                    {% elif row.status == 'UnLocked' %}
+                      <span class="pill pill-unlocked">Unlocked</span>
+                    {% else %}
+                      <span class="pill pill-notfound">{{ row.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if row.status == 'Locked' %}
+                      <button class="btn btn-distance-check" data-msisdn="{{ row.customer.msisdn|default:'' }}">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                        </svg>
+                        View distances
+                      </button>
+                    {% else %}
+                      <span class="no-actions">-</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">
+                  <div class="empty-state">
+                    <i class="fas fa-inbox" style="font-size:32px"></i>
+                    <p>No customers found.</p>
+                  </div>
+                </td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pag-all" style="display:none">
+            <span class="pag-info" id="pag-info-all"></span>
+            <div class="pag-controls" id="pag-ctrl-all"></div>
+          </div>
+        </div>
+      </div>
 
-    </main>
+      <!-- ═══ Panel: Found ═══ -->
+      <div id="panel-found" class="panel">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input class="search-input" type="text" placeholder="Search…"
+                   oninput="filterTable('found', this.value)">
+          </div>
+          <span class="row-count" id="count-found"></span>
+        </div>
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="hbb" id="tbl-found">
+              <thead>
+                <tr>
+                  <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
+                  <th>Lock status</th>
+                  <th>Cells</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-found">
+                {% for row in found_customers %}
+                <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
+                  <td><span class="id-chip">{{ row.customer.id }}</span></td>
+                  <td>{{ row.customer.msisdn|default:"-" }}</td>
+                  <td>{{ row.customer.customer_name|default:"-" }}</td>
+                  <td class="muted">{{ row.customer.product_name|default:"-" }}</td>
+                  <td>
+                    {% if row.is_locked %}
+                      <span class="pill pill-locked">Locked</span>
+                    {% else %}
+                      <span class="pill pill-unlocked">Unlocked</span>
+                    {% endif %}
+                  </td>
+                  <td class="cells-column">
+                    {% if row.custom3 %}
+                      {% with cell_count=row.custom3.split|length %}
+                        <span class="cell-count">{{ cell_count|intcomma }}</span>
+                      {% endwith %}
+                    {% else %}
+                      <span class="no-cells">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <button class="btn btn-distance-check"
+                            data-msisdn="{{ row.customer.msisdn|default:'' }}"
+                            {% if not row.is_locked %}disabled{% endif %}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                      </svg>
+                      View distances
+                    </button>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">
+                  <div class="empty-state"><p>No customers found.</p></div>
+                </td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pag-found" style="display:none">
+            <span class="pag-info" id="pag-info-found"></span>
+            <div class="pag-controls" id="pag-ctrl-found"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ Panel: Not Found ═══ -->
+      <div id="panel-not-found" class="panel">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input class="search-input" type="text" placeholder="Search…"
+                   oninput="filterTable('not-found', this.value)">
+          </div>
+          <span class="row-count" id="count-not-found"></span>
+        </div>
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="hbb" id="tbl-not-found">
+              <thead>
+                <tr>
+                  <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="product">Product <span class="sort-icon"></span></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-not-found">
+                {% for customer in not_found_customers %}
+                <tr>
+                  <td><span class="id-chip">{{ customer.id }}</span></td>
+                  <td>{{ customer.msisdn|default:"-" }}</td>
+                  <td>{{ customer.customer_name|default:"-" }}</td>
+                  <td class="muted">{{ customer.product_name|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">
+                  <div class="empty-state"><p>No customers found.</p></div>
+                </td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pag-not-found" style="display:none">
+            <span class="pag-info" id="pag-info-not-found"></span>
+            <div class="pag-controls" id="pag-ctrl-not-found"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ Panel: Unlocked ═══ -->
+      <div id="panel-unlocked" class="panel">
+        {% if not has_cell_towers_table %}
+        <div class="notice notice-warn">
+          <svg class="notice-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <div><strong>cells_info table not found.</strong> Please ensure this table exists with lat/lon populated.</div>
+        </div>
+        {% endif %}
+        <div class="notice notice-info">
+          <svg class="notice-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>For unlocked customers, click <strong>Suggest nearest cells</strong> to find the 10 closest cell towers, then select and save.</div>
+        </div>
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input class="search-input" type="text" placeholder="Search…"
+                   oninput="filterTable('unlocked', this.value)">
+          </div>
+          <span class="row-count" id="count-unlocked"></span>
+        </div>
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="hbb" id="tbl-unlocked">
+              <thead>
+                <tr>
+                  <th class="sortable" data-key="id">ID <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="msisdn">MSISDN <span class="sort-icon"></span></th>
+                  <th class="sortable" data-key="name">Customer name <span class="sort-icon"></span></th>
+                  <th>Coordinates</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-unlocked">
+                {% for row in unlocked_customers %}
+                <tr data-msisdn="{{ row.customer.msisdn|default:'' }}">
+                  <td><span class="id-chip">{{ row.customer.id }}</span></td>
+                  <td>{{ row.customer.msisdn|default:"-" }}</td>
+                  <td>{{ row.customer.customer_name|default:"-" }}</td>
+                  <td class="dim">
+                    {% if row.has_coordinates %}
+                      {{ row.latitude }}, {{ row.longitude }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td>
+                    <button class="btn btn-primary btn-suggest"
+                            data-msisdn="{{ row.customer.msisdn|default:'' }}"
+                            data-customer-id="{{ row.customer.id }}"
+                            {% if not row.has_coordinates or not row.customer.msisdn %}disabled{% endif %}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                      Suggest nearest cells
+                    </button>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">
+                  <div class="empty-state"><p>No unlocked customers found.</p></div>
+                </td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pag-unlocked" style="display:none">
+            <span class="pag-info" id="pag-info-unlocked"></span>
+            <div class="pag-controls" id="pag-ctrl-unlocked"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.content -->
+  </div><!-- /.main -->
+</div><!-- /.app -->
+
+<!-- Distance Modal -->
+<div id="distanceModal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeDistanceModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Cell Distances</h3>
+      <button class="modal-close" onclick="closeDistanceModal()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="distanceModalBody">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading distances…</p>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- Nearest Cells Modal -->
+<div id="nearestCellsModal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeNearestCellsModal()"></div>
+  <div class="modal-content" style="max-width:900px">
+    <div class="modal-header">
+      <h3>Assign Nearest Cells</h3>
+      <button class="modal-close" onclick="closeNearestCellsModal()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="nearestCellsModalBody">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Finding nearest cells…</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Coordinate Checker Modal -->
+<div id="coordinateCheckerModal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeCoordinateChecker()"></div>
+  <div class="modal-content" style="max-width:800px">
+    <div class="modal-header">
+      <h3>Check Coordinates</h3>
+      <button class="modal-close" onclick="closeCoordinateChecker()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="coordinate-input-section">
+        <div class="input-group">
+          <div class="input-row">
+            <div class="input-field">
+              <label for="coordLatitude">Latitude</label>
+              <input type="number" id="coordLatitude" step="any" placeholder="e.g., -1.936056" class="coord-input">
+            </div>
+            <div class="input-field">
+              <label for="coordLongitude">Longitude</label>
+              <input type="number" id="coordLongitude" step="any" placeholder="e.g., 30.095654" class="coord-input">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="checkCustomCoordinates()">
+            <i class="fas fa-search"></i> Find Nearest Cells
+          </button>
+        </div>
+      </div>
+      
+      <div id="coordResults" style="display:none">
+        <div class="results-header">
+          <h4>Nearest 20 Cells</h4>
+          <div class="coord-display">
+            <strong>Coordinates:</strong> <span id="coordDisplay"></span>
+          </div>
+        </div>
+        <div class="cells-table-container">
+          <table class="cells-table" id="coordCellsTable">
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th>Cell ID</th>
+                <th>Name</th>
+                <th>Region</th>
+                <th>Coordinates</th>
+                <th>Distance</th>
+                <th>Signal</th>
+              </tr>
+            </thead>
+            <tbody id="coordCellsBody">
+              <!-- Results will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- jQuery first -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>
-$(function () {
-
-    // ── Navigation ──────────────────────────────────────────────
-    function activatePanel(panelKey) {
-        $('.stat-card, .nav-item[data-panel]').removeClass('active');
-        $(`.stat-card[data-panel="${panelKey}"], .nav-item[data-panel="${panelKey}"]`).addClass('active');
-        $('.panel').removeClass('active');
-        $(`#panel-${panelKey}`).addClass('active');
-    }
-
-    $('.stat-card[data-panel], .nav-item[data-panel]').on('click', function () {
-        activatePanel($(this).data('panel'));
-    });
-
-    // ── Client-side search & sort (DataTables-free) ──────────────
-    // Each panel table supports live filtering + column sorting.
-    // The template already renders all rows server-side.
-    // We capture them once, then filter/sort/paginate in JS.
-
-    const PER_PAGE = 25;
-
-    const tableState = {};
-
-    function initTableSearch(panelKey, tableId) {
-        const $table = $(`#${tableId}`);
-        if (!$table.length) return;
-
-        // Capture all data rows (skip expand rows)
-        const $allRows = $table.find('tbody tr:not(.expand-row)');
-        if (!$allRows.length) return;
-
-        tableState[panelKey] = {
-            $table,
-            allRows: $allRows.toArray(),
-            filteredRows: $allRows.toArray(),
-            page: 1,
-            sortCol: -1,
-            sortDir: 'asc'
-        };
-
-        updateCount(panelKey);
-        renderPagination(panelKey);
-
-        // Sort headers
-        $table.find('thead th.sortable').on('click', function () {
-            const key = $(this).data('key');
-            const s = tableState[panelKey];
-            if (s.sortKey === key) {
-                s.sortDir = s.sortDir === 'asc' ? 'desc' : 'asc';
-            } else {
-                s.sortKey = key;
-                s.sortDir = 'asc';
-            }
-            $table.find('thead th').removeClass('sort-asc sort-desc');
-            $(this).addClass(s.sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
-            sortAndRender(panelKey);
-        });
-    }
-
-    function filterTable(panelKey, q) {
-        const s = tableState[panelKey];
-        if (!s) return;
-        const lq = q.toLowerCase().trim();
-        s.filteredRows = lq
-            ? s.allRows.filter(tr => $(tr).text().toLowerCase().includes(lq))
-            : [...s.allRows];
-        s.page = 1;
-        sortAndRender(panelKey);
-    }
-
-    function sortAndRender(panelKey) {
-        const s = tableState[panelKey];
-        if (!s) return;
-        if (s.sortKey) {
-            const colMap = {};
-            s.$table.find('thead th.sortable').each(function (i) {
-                colMap[$(this).data('key')] = i;
-            });
-            const colIdx = colMap[s.sortKey];
-            s.filteredRows.sort((a, b) => {
-                const av = $(a).find('td').eq(colIdx).text().trim();
-                const bv = $(b).find('td').eq(colIdx).text().trim();
-                const an = parseFloat(av), bn = parseFloat(bv);
-                let cmp = (!isNaN(an) && !isNaN(bn)) ? an - bn : av.localeCompare(bv);
-                return s.sortDir === 'asc' ? cmp : -cmp;
-            });
-        }
-        updateCount(panelKey);
-        renderPage(panelKey);
-        renderPagination(panelKey);
-    }
-
-    function renderPage(panelKey) {
-        const s = tableState[panelKey];
-        if (!s) return;
-        const start = (s.page - 1) * PER_PAGE;
-        const visible = s.filteredRows.slice(start, start + PER_PAGE);
-        // Hide all, then show page slice
-        s.$table.find('tbody tr:not(.expand-row)').hide();
-        visible.forEach(tr => $(tr).show());
-    }
-
-    function updateCount(panelKey) {
-        const s = tableState[panelKey];
-        if (!s) return;
-        const total = s.filteredRows.length;
-        const start = Math.min((s.page - 1) * PER_PAGE + 1, total);
-        const end = Math.min(s.page * PER_PAGE, total);
-        $(`#count-${panelKey}`).text(total ? `${start}–${end} of ${total}` : '0 results');
-        // Pagination bar
-        const $pag = $(`#pag-${panelKey}`);
-        if (total > PER_PAGE) { $pag.show(); } else { $pag.hide(); }
-        // pag-info
-        $(`#pag-info-${panelKey}`).text(`Showing ${start}–${end} of ${total} rows`);
-    }
-
-    function renderPagination(panelKey) {
-        const s = tableState[panelKey];
-        if (!s) return;
-        const total = Math.ceil(s.filteredRows.length / PER_PAGE);
-        const cur = s.page;
-        const $ctrl = $(`#pag-ctrl-${panelKey}`);
-        let html = `<button class="pag-btn" onclick="goPage('${panelKey}',${cur-1})" ${cur<=1?'disabled':''}>‹</button>`;
-        const lo = Math.max(1, cur - 2), hi = Math.min(total, cur + 2);
-        if (lo > 1) html += `<button class="pag-btn" onclick="goPage('${panelKey}',1)">1</button>${lo>2?'<span class="pag-ellipsis">…</span>':''}`;
-        for (let p = lo; p <= hi; p++) html += `<button class="pag-btn ${p===cur?'active':''}" onclick="goPage('${panelKey}',${p})">${p}</button>`;
-        if (hi < total) html += `${hi<total-1?'<span class="pag-ellipsis">…</span>':''}<button class="pag-btn" onclick="goPage('${panelKey}',${total})">${total}</button>`;
-        html += `<button class="pag-btn" onclick="goPage('${panelKey}',${cur+1})" ${cur>=total?'disabled':''}>›</button>`;
-        $ctrl.html(html);
-    }
-
-    window.goPage = function (panelKey, p) {
-        const s = tableState[panelKey];
-        if (!s) return;
-        const total = Math.ceil(s.filteredRows.length / PER_PAGE);
-        if (p < 1 || p > total) return;
-        s.page = p;
-        renderPage(panelKey);
-        updateCount(panelKey);
-        renderPagination(panelKey);
-    };
-
-    window.filterTable = filterTable;
-
-    // Old table functionality disabled - using DataTables instead
-    // initTableSearch('all', 'tbl-all');
-    // initTableSearch('found', 'tbl-found');
-    // initTableSearch('not-found', 'tbl-not-found');
-    // initTableSearch('unlocked', 'tbl-unlocked');
-
-    // ── Distance check (Found panel) ────────────────────────────
-    $(document).on('click', '.btn-distance-check', async function () {
-        const btn = $(this);
-        const msisdn = btn.data('msisdn');
-        
-        // Show modal with loading state
-        openDistanceModal();
-        const modalBody = document.getElementById('distanceModalBody');
-        modalBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading distances...</p></div>';
-
-        try {
-            const res = await fetch(`/registered-cell-distances/?msisdn=${encodeURIComponent(msisdn)}`);
-            const data = await res.json();
-
-            if (!data.success) {
-                modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">${escHtml(data.error || 'Failed to load distances')}</div>`;
-                return;
-            }
-
-            if (!data.distances.length) {
-                modalBody.innerHTML = `<div class="notice notice-info" style="margin:20px">No registered cells with coordinates found for this customer.</div>`;
-            } else {
-                let html = `<div class="expand-label">${escHtml(data.customer.msisdn)} — distances to registered cells</div>`;
-                html += `<div style="overflow-x:auto"><table class="mini">
-                    <thead><tr>
-                        <th>Cell ID</th><th>Name</th><th>Coordinates</th><th>Region</th><th>Distance</th>
-                    </tr></thead>
-                    <tbody>`;
-                data.distances.forEach(d => {
-                    html += `<tr>
-                        <td><span class="id-chip">${escHtml(d.cell_id)}</span></td>
-                        <td>${escHtml(d.cell_name || '—')}</td>
-                        <td class="muted">${escHtml(String(d.latitude))}, ${escHtml(String(d.longitude))}</td>
-                        <td class="muted">${escHtml(d.region || '—')}</td>
-                        <td><strong>${escHtml(String(d.distance_km))} km</strong></td>
-                    </tr>`;
-                });
-                html += `</tbody></table></div>`;
-                if (data.not_found_cells && data.not_found_cells.length) {
-                    html += `<div class="notice notice-warn" style="margin-top:10px;display:flex">
-                        <svg class="notice-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        Not found in cells_info: ${escHtml(data.not_found_cells.join(', '))}</div>`;
-                }
-                modalBody.innerHTML = html;
-            }
-        } catch (err) {
-            modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">Error: ${escHtml(err.message)}</div>`;
-        }
-    });
-
-    // ── Modal Functions ───────────────────────────────────────
-    function openDistanceModal() {
-        document.getElementById('distanceModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-
-    // ── Suggest nearest cells (Unlocked panel) ──────────────────
-    $(document).on('click', '.btn-suggest', async function () {
-        const btn = $(this);
-        const msisdn = btn.data('msisdn');
-        const custId = btn.data('customer-id');
-        
-        // Show modal with loading state
-        openNearestCellsModal();
-        const modalBody = document.getElementById('nearestCellsModalBody');
-        modalBody.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Finding nearest cells...</p></div>';
-
-        try {
-            const res = await fetch(`/suggest-nearest-cells/?msisdn=${encodeURIComponent(msisdn)}&limit=20`);
-            const data = await res.json();
-
-            if (!data.success) {
-                modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">${escHtml(data.error || 'Failed to load suggestions')}</div>`;
-                return;
-            }
-
-            if (!data.suggested_cells.length) {
-                modalBody.innerHTML = `<div class="notice notice-info" style="margin:20px">No nearby cells found for this customer.</div>`;
-                return;
-            }
-
-            let html = `<div class="customer-info">
-                <div class="customer-header">
-                    <h4>${escHtml(data.customer.msisdn)} - ${escHtml(data.customer.customer_name || 'Unknown')}</h4>
-                    <p class="customer-coords">Coordinates: ${escHtml(String(data.customer.latitude))}, ${escHtml(String(data.customer.longitude))}</p>
-                </div>
-                <div class="selection-info">
-                    <span class="selected-count" id="selectedCount-${custId}">0 cells selected</span>
-                    <button class="btn btn-sm" onclick="selectAllCells('${custId}')">Select All</button>
-                    <button class="btn btn-sm" onclick="clearAllCells('${custId}')">Clear All</button>
-                </div>
-            </div>`;
-            
-            html += `<div class="cells-table-container">
-                <table class="cells-table" id="cell-tbl-${custId}">
-                    <thead>
-                        <tr>
-                            <th style="width:50px"><input type="checkbox" id="selectAll-${custId}" onchange="toggleAllCells('${custId}')"></th>
-                            <th>Cell ID</th>
-                            <th>Name</th>
-                            <th>Region</th>
-                            <th>Coordinates</th>
-                            <th>Distance</th>
-                            <th>Signal</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-            
-            data.suggested_cells.forEach((cell, idx) => {
-                const signalStrength = getSignalStrength(cell.distance_km);
-                const isAssigned = cell.is_assigned || false; // Check if cell is already assigned to this customer
-                html += `<tr>
-                    <td style="text-align:center"><input type="checkbox" class="cell-checkbox" data-cust-id="${custId}" value="${escHtml(cell.cell_id)}" ${isAssigned ? 'checked' : ''} onchange="updateSelectedCount('${custId}')"></td>
-                    <td><span class="id-chip">${escHtml(cell.cell_id)}</span></td>
-                    <td>${escHtml(cell.cell_name || '—')}</td>
-                    <td class="muted">${escHtml(cell.region || '—')}</td>
-                    <td class="muted" style="font-size:12px">${escHtml(String(cell.latitude))}, ${escHtml(String(cell.longitude))}</td>
-                    <td><strong>${escHtml(String(cell.distance_km))} km</strong></td>
-                    <td>${signalStrength}</td>
-                </tr>`;
-            });
-            html += `</tbody></table></div>`;
-
-            html += `
-                <div class="modal-actions">
-                    <div class="manual-input-group">
-                        <input type="text" placeholder="Add manual cell ID (optional)" id="manual-input-${custId}" class="manual-input">
-                        <button class="btn" onclick="addManualCell('${custId}')">
-                            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                            </svg>
-                            Add cell
-                        </button>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="closeNearestCellsModal()">Cancel</button>
-                        <button class="btn btn-primary" onclick="saveCells('${msisdn}','${custId}')" id="save-btn-${custId}">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            Save selected cells
-                        </button>
-                    </div>
-                </div>
-                <div class="notice notice-success" id="save-ok-${custId}" style="display:none"></div>
-            `;
-
-            modalBody.innerHTML = html;
-            updateSelectedCount(custId);
-        } catch (err) {
-            modalBody.innerHTML = `<div class="notice notice-warn" style="margin:20px">Error: ${escHtml(err.message)}</div>`;
-        }
-    });
-
-    window.addManualCell = function (custId) {
-        const input = document.getElementById(`manual-input-${custId}`);
-        const val = (input.value || '').trim();
-        if (!val) { alert('Enter a cell ID first.'); return; }
-        const tbody = document.querySelector(`#cell-tbl-${custId} tbody`);
-        const exists = [...tbody.querySelectorAll('.cell-checkbox')].some(cb => cb.value === val);
-        if (exists) { alert('This cell ID is already in the list.'); return; }
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td style="text-align:center"><input type="checkbox" class="cell-checkbox" value="${escHtmlRaw(val)}" checked></td>
-            <td><span class="id-chip">${escHtmlRaw(val)}</span></td>
-            <td style="color:var(--text-tertiary);font-style:italic">Manually added</td>
-            <td>—</td><td>—</td><td>—</td>`;
-        tbody.appendChild(tr);
-        input.value = '';
-        input.focus();
-    };
-
-    window.saveCells = async function (msisdn, custId) {
-        const cbs = document.querySelectorAll(`#cell-tbl-${custId} .cell-checkbox:checked`);
-        const selected = [...cbs].map(cb => cb.value);
-        if (!selected.length) { alert('Please select at least one cell.'); return; }
-
-        const btn = document.getElementById(`save-btn-${custId}`);
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner"></span> Saving…`;
-
-        try {
-            const res = await fetch('/save-customer-cells/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ msisdn, selected_cells: selected })
-            });
-            const data = await res.json();
-            if (!data.success) {
-                alert(data.error || 'Failed to save cells.');
-                return;
-            }
-            const ok = document.getElementById(`save-ok-${custId}`);
-            ok.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Saved ${data.saved_cells.length} cell${data.saved_cells.length !== 1 ? 's' : ''}: ${escHtmlRaw(data.saved_cells.join(', '))}`;
-            ok.style.display = 'flex';
-            btn.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Saved`;
-        } catch (err) {
-            alert(`Error: ${err.message}`);
-            btn.disabled = false;
-            btn.innerHTML = `Save selected cells`;
-        }
-    };
-
-    // ── Helpers ─────────────────────────────────────────────────
-    function showNotice(container, type, msg) {
-        const icons = {
-            warn: `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
-            info: `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
-        };
-        container.html(`<div class="notice notice-${type}" style="display:flex">${icons[type] || ''}<div>${escHtmlRaw(msg)}</div></div>`);
-    }
-
-    function escHtml(str) {
-        return $('<div>').text(str).html();
-    }
-    function escHtmlRaw(str) {
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    function getCookie(name) {
-        const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-        return v ? v[2] : '';
-    }
-
-    // ── Number formatting function ───────────────────────────────
-    function formatNumberWithCommas(x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-
-    // ── Initialize DataTables ─────────────────────────────────────
-    function initDataTables() {
-        // Initialize all tables with DataTables
-        const tables = ['tbl-all', 'tbl-found', 'tbl-not-found', 'tbl-unlocked'];
-        
-        tables.forEach(tableId => {
-            const table = $(`#${tableId}`);
-            if (table.length) {
-                // Check if table already has DataTables initialized
-                if ($.fn.dataTable.isDataTable(table)) {
-                    table.DataTable().destroy();
-                }
-                
-                table.DataTable({
-                    pageLength: 25,
-                    responsive: true,
-                    order: [[0, 'asc']],
-                    autoWidth: false,
-                    columnDefs: [
-                        {
-                            targets: 0, // ID column
-                            render: function(data, type, row) {
-                                if (type === 'display' && data) {
-                                    const numValue = parseInt(data);
-                                    if (!isNaN(numValue)) {
-                                        return `<span class="id-chip">${formatNumberWithCommas(numValue)}</span>`;
-                                    }
-                                }
-                                return data;
-                            }
-                        },
-                        {
-                            targets: 'tr.expand-row',
-                            searchable: false,
-                            orderable: false
-                        }
-                    ],
-                    initComplete: function(settings, json) {
-                        // Apply number formatting to all ID cells after table is initialized
-                        this.api().cells().nodes().to$().find('.id-chip').each(function() {
-                            const text = $(this).text();
-                            const numValue = parseInt(text);
-                            if (!isNaN(numValue)) {
-                                $(this).text(formatNumberWithCommas(numValue));
-                            }
-                        });
-                        
-                        // Update row count display with thousands separators
-                        const api = this.api();
-                        const totalCount = api.data().length;
-                        const countElement = document.getElementById(`count-${tableId.replace('tbl-', '')}`);
-                        if (countElement) {
-                            countElement.textContent = `${formatNumberWithCommas(totalCount)} customers`;
-                        }
-                        
-                        // Hide existing pagination elements
-                        const existingPag = document.getElementById(`pag-${tableId.replace('tbl-', '')}`);
-                        if (existingPag) {
-                            existingPag.style.display = 'none';
-                        }
-                    },
-                    language: {
-                        search: "Search customers:",
-                        lengthMenu: "Show _MENU_ customers",
-                        info: "Showing _START_ to _END_ of _TOTAL_ customers",
-                        paginate: {
-                            first: "First",
-                            last: "Last",
-                            next: "Next",
-                            previous: "Previous"
-                        },
-                        emptyTable: "No customers found",
-                        zeroRecords: "No matching customers found"
-                    },
-                    dom: '<"top"lfB>rt<"bottom"ip>',
-                    buttons: [
-                        {
-                            extend: 'excel',
-                            text: '<i class="fas fa-file-excel"></i> Excel',
-                            className: 'btn btn-sm btn-success',
-                            exportOptions: {
-                                columns: ':visible'
-                            }
-                        },
-                        {
-                            extend: 'csv',
-                            text: '<i class="fas fa-file-csv"></i> CSV',
-                            className: 'btn btn-sm btn-primary',
-                            exportOptions: {
-                                columns: ':visible'
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="fas fa-print"></i> Print',
-                            className: 'btn btn-sm btn-secondary'
-                        }
-                    ],
-                    initComplete: function(settings, json) {
-                        // Update row count display
-                        const api = this.api();
-                        const totalCount = api.data().length;
-                        const countElement = document.getElementById(`count-${tableId.replace('tbl-', '')}`);
-                        if (countElement) {
-                            countElement.textContent = `${totalCount} customers`;
-                        }
-                        
-                        // Hide existing pagination elements
-                        const existingPag = document.getElementById(`pag-${tableId.replace('tbl-', '')}`);
-                        if (existingPag) {
-                            existingPag.style.display = 'none';
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    // Initialize DataTables when DOM is ready
-    $(document).ready(function() {
-        initDataTables();
-    });
-
-    // ── Export Data Function ───────────────────────────────────────
-    function exportData() {
-        // Find the active panel and export its table data
-        const activePanel = document.querySelector('.panel.active');
-        if (!activePanel) {
-            alert('No active table to export');
-            return;
-        }
-
-        const tableId = activePanel.querySelector('table').id;
-        const table = $(`#${tableId}`);
-        
-        if (table.length && $.fn.dataTable.isDataTable(table)) {
-            const dataTable = table.DataTable();
-            
-            // Trigger Excel export
-            dataTable.button(0).trigger();
-        } else {
-            alert('Table not initialized for export');
-        }
-    }
-});
-
-// ── Global Modal Functions ───────────────────────────────────────
-function closeDistanceModal() {
-    document.getElementById('distanceModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-function openNearestCellsModal() {
-    document.getElementById('nearestCellsModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeNearestCellsModal() {
-    document.getElementById('nearestCellsModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-// ── Cell Selection Functions ───────────────────────────────────────
-function getSignalStrength(distance) {
-    if (distance < 1) return '<span class="signal-strength signal-excellent">Excellent</span>';
-    if (distance < 3) return '<span class="signal-strength signal-good">Good</span>';
-    if (distance < 5) return '<span class="signal-strength signal-fair">Fair</span>';
-    return '<span class="signal-strength signal-poor">Poor</span>';
-}
-
-function updateSelectedCount(custId) {
-    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
-    const checked = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]:checked`);
-    const countElement = document.getElementById(`selectedCount-${custId}`);
-    if (countElement) {
-        countElement.textContent = `${checked.length} cells selected`;
-    }
-    
-    const selectAllCheckbox = document.getElementById(`selectAll-${custId}`);
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = checked.length === checkboxes.length && checkboxes.length > 0;
-        selectAllCheckbox.indeterminate = checked.length > 0 && checked.length < checkboxes.length;
-    }
-}
-
-function toggleAllCells(custId) {
-    const selectAllCheckbox = document.getElementById(`selectAll-${custId}`);
-    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAllCheckbox.checked;
-    });
-    
-    updateSelectedCount(custId);
-}
-
-function selectAllCells(custId) {
-    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = true;
-    });
-    updateSelectedCount(custId);
-}
-
-function clearAllCells(custId) {
-    const checkboxes = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    updateSelectedCount(custId);
-}
-</script>
-
-<!-- DataTables JavaScript -->
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- DataTables -->
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
@@ -2145,47 +1853,488 @@ function clearAllCells(custId) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
-  <!-- Distance Modal -->
-  <div id="distanceModal" class="modal" style="display:none">
-    <div class="modal-backdrop" onclick="closeDistanceModal()"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Cell Distances</h3>
-        <button class="modal-close" onclick="closeDistanceModal()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      <div class="modal-body" id="distanceModalBody">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Loading distances...</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Nearest Cells Modal -->
-  <div id="nearestCellsModal" class="modal" style="display:none">
-    <div class="modal-backdrop" onclick="closeNearestCellsModal()"></div>
-    <div class="modal-content" style="max-width: 900px;">
-      <div class="modal-header">
-        <h3>Assign Nearest Cells</h3>
-        <button class="modal-close" onclick="closeNearestCellsModal()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      <div class="modal-body" id="nearestCellsModalBody">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Finding nearest cells...</p>
-        </div>
-      </div>
-    </div>
-  </div>
+<script>
+/* ══════════════════════════════════════════
+   FULLSCREEN LOADER CONTROLLER
+══════════════════════════════════════════ */
+(function () {
+  const STEPS = [
+    { pct: 0,   msg: 'Initializing page…' },
+    { pct: 18,  msg: 'Setting up navigation…' },
+    { pct: 38,  msg: 'Loading customer data…' },
+    { pct: 58,  msg: 'Initializing data tables…' },
+    { pct: 78,  msg: 'Applying filters & sorting…' },
+    { pct: 95,  msg: 'Finalizing setup…' },
+    { pct: 100, msg: 'Ready!' },
+  ];
 
+  const CIRCUMFERENCE = 2 * Math.PI * 30; // r=30
+
+  const ring    = document.getElementById('loaderRing');
+  const pctEl   = document.getElementById('loaderPct');
+  const msgEl   = document.getElementById('loaderMsg');
+  const barEl   = document.getElementById('loaderBar');
+  const overlay = document.getElementById('appLoadingOverlay');
+  const dots    = document.querySelectorAll('#loaderDots .loader-dot');
+
+  let currentStep = 0;
+
+  function setProgress(pct, msg) {
+    // Ring
+    const offset = CIRCUMFERENCE * (1 - pct / 100);
+    ring.style.strokeDashoffset = offset;
+    pctEl.textContent = Math.round(pct) + '%';
+
+    // Bar
+    barEl.style.width = pct + '%';
+
+    // Message (fade swap)
+    if (msg && msgEl.textContent !== msg) {
+      msgEl.style.opacity = '0';
+      setTimeout(() => {
+        msgEl.textContent = msg;
+        msgEl.style.opacity = '1';
+      }, 150);
+    }
+  }
+
+  function setStep(idx) {
+    dots.forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < idx) d.classList.add('done');
+      else if (i === idx) d.classList.add('active');
+    });
+  }
+
+  window._loaderAdvance = function (stepIndex) {
+    if (stepIndex >= STEPS.length) return;
+    const { pct, msg } = STEPS[stepIndex];
+    setProgress(pct, msg);
+    setStep(Math.min(stepIndex, dots.length - 1));
+    currentStep = stepIndex;
+  };
+
+  window._loaderDone = function () {
+    setProgress(100, 'Ready!');
+    setStep(dots.length - 1);
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+    }, 420);
+  };
+
+  // Kick off step 0 immediately
+  setProgress(0, STEPS[0].msg);
+  setStep(0);
+})();
+
+/* ══════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════ */
+$(function () {
+
+  // Step 1 — nav setup
+  _loaderAdvance(1);
+
+  // ── Navigation ──────────────────────────────────────────────
+  function activatePanel(panelKey) {
+    $('.stat-card, .nav-item[data-panel]').removeClass('active');
+    $(`.stat-card[data-panel="${panelKey}"], .nav-item[data-panel="${panelKey}"]`).addClass('active');
+    $('.panel').removeClass('active');
+    $(`#panel-${panelKey}`).addClass('active');
+  }
+
+  $('.stat-card[data-panel], .nav-item[data-panel]').on('click', function () {
+    activatePanel($(this).data('panel'));
+  });
+
+  // Step 2 — data loading
+  _loaderAdvance(2);
+
+  // ── Helpers ─────────────────────────────────────────────────
+  function escHtml(str) { return $('<div>').text(str).html(); }
+  function escHtmlRaw(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : '';
+  }
+  function formatNum(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  // Step 3 — DataTables init
+  _loaderAdvance(3);
+
+  function initDataTables() {
+    const tableIds = ['tbl-all', 'tbl-found', 'tbl-not-found', 'tbl-unlocked'];
+    let done = 0;
+
+    tableIds.forEach(tid => {
+      const $t = $(`#${tid}`);
+      if (!$t.length) { done++; return; }
+      if ($.fn.dataTable.isDataTable($t)) $t.DataTable().destroy();
+
+      $t.DataTable({
+        pageLength: 25,
+        responsive: true,
+        order: [[0, 'asc']],
+        autoWidth: false,
+        dom: '<"top"lfB>rt<"bottom"ip>',
+        buttons: [
+          { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Excel', className: 'btn btn-sm btn-success', exportOptions: { columns: ':visible' } },
+          { extend: 'csv',   text: '<i class="fas fa-file-csv"></i> CSV',     className: 'btn btn-sm btn-primary',  exportOptions: { columns: ':visible' } },
+          { extend: 'print', text: '<i class="fas fa-print"></i> Print',      className: 'btn btn-sm btn-secondary' }
+        ],
+        language: {
+          search: 'Search customers:',
+          lengthMenu: 'Show _MENU_ customers',
+          info: 'Showing _START_ to _END_ of _TOTAL_ customers',
+          paginate: { first: 'First', last: 'Last', next: 'Next', previous: 'Previous' },
+          emptyTable: 'No customers found',
+          zeroRecords: 'No matching customers found'
+        },
+        initComplete: function () {
+          const api = this.api();
+          const panelKey = tid.replace('tbl-', '');
+          const total = api.data().length;
+          const countEl = document.getElementById(`count-${panelKey}`);
+          if (countEl) countEl.textContent = `${formatNum(total)} customers`;
+
+          const pag = document.getElementById(`pag-${panelKey}`);
+          if (pag) pag.style.display = 'none';
+
+          done++;
+          if (done === tableIds.length) {
+            // Step 4 — filters
+            _loaderAdvance(4);
+            setTimeout(() => {
+              // Step 5 — finalizing
+              _loaderAdvance(5);
+              setTimeout(() => {
+                // All done
+                _loaderDone();
+              }, 350);
+            }, 300);
+          }
+        }
+      });
+    });
+  }
+
+  initDataTables();
+
+  // ── Distance check ───────────────────────────────────────────
+  $(document).on('click', '.btn-distance-check', async function () {
+    const msisdn = $(this).data('msisdn');
+    openDistanceModal();
+    const body = document.getElementById('distanceModalBody');
+    body.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading distances…</p></div>';
+
+    try {
+      const res  = await fetch(`/hbb/registered-cell-distances/?msisdn=${encodeURIComponent(msisdn)}`);
+      const data = await res.json();
+
+      if (!data.success) {
+        body.innerHTML = `<div class="notice notice-warn">${escHtml(data.error || 'Failed to load distances')}</div>`;
+        return;
+      }
+
+      if (!data.distances.length) {
+        body.innerHTML = `<div class="notice notice-info">No registered cells with coordinates found for this customer.</div>`;
+      } else {
+        let html = `<div class="expand-label">${escHtml(data.customer.msisdn)} — distances to registered cells</div>
+          <div style="overflow-x:auto"><table class="mini"><thead><tr>
+            <th>Cell ID</th><th>Name</th><th>Coordinates</th><th>Region</th><th>Distance</th>
+          </tr></thead><tbody>`;
+        data.distances.forEach(d => {
+          html += `<tr>
+            <td><span class="id-chip">${escHtml(d.cell_id)}</span></td>
+            <td>${escHtml(d.cell_name||'—')}</td>
+            <td class="muted">${escHtml(String(d.latitude))}, ${escHtml(String(d.longitude))}</td>
+            <td class="muted">${escHtml(d.region||'—')}</td>
+            <td><strong>${escHtml(String(d.distance_km))} km</strong></td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+        if (data.not_found_cells && data.not_found_cells.length) {
+          html += `<div class="notice notice-warn" style="margin-top:10px;display:flex">
+            <svg class="notice-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            Not found in cells_info: ${escHtml(data.not_found_cells.join(', '))}</div>`;
+        }
+        body.innerHTML = html;
+      }
+    } catch (err) {
+      body.innerHTML = `<div class="notice notice-warn">Error: ${escHtml(err.message)}</div>`;
+    }
+  });
+
+  // ── Suggest nearest cells ────────────────────────────────────
+  $(document).on('click', '.btn-suggest', async function () {
+    const msisdn = $(this).data('msisdn');
+    const custId = $(this).data('customer-id');
+    openNearestCellsModal();
+    const body = document.getElementById('nearestCellsModalBody');
+    body.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Finding nearest cells…</p></div>';
+
+    try {
+      const res  = await fetch(`/hbb/suggest-nearest-cells/?msisdn=${encodeURIComponent(msisdn)}&limit=20`);
+      const data = await res.json();
+
+      if (!data.success) {
+        body.innerHTML = `<div class="notice notice-warn">${escHtml(data.error||'Failed to load suggestions')}</div>`;
+        return;
+      }
+
+      if (!data.suggested_cells.length) {
+        body.innerHTML = `<div class="notice notice-info">No nearby cells found for this customer.</div>`;
+        return;
+      }
+
+      let html = `<div class="customer-info">
+        <div class="customer-header">
+          <h4>${escHtml(data.customer.msisdn)} - ${escHtml(data.customer.name||'Unknown')}</h4>
+          <p class="customer-coords">Coordinates: ${escHtml(String(data.customer.latitude))}, ${escHtml(String(data.customer.longitude))}</p>
+        </div>
+        <div class="selection-info">
+          <span class="selected-count" id="selectedCount-${custId}">0 cells selected</span>
+          <button class="btn btn-sm" onclick="selectAllCells('${custId}')">Select All</button>
+          <button class="btn btn-sm" onclick="clearAllCells('${custId}')">Clear All</button>
+        </div>
+      </div>`;
+
+      html += `<div class="cells-table-container">
+        <table class="cells-table" id="cell-tbl-${custId}">
+          <thead><tr>
+            <th style="width:50px"><input type="checkbox" id="selectAll-${custId}" onchange="toggleAllCells('${custId}')"></th>
+            <th>Cell ID</th><th>Name</th><th>Region</th><th>Coordinates</th><th>Distance</th><th>Signal</th>
+          </tr></thead><tbody>`;
+
+      data.suggested_cells.forEach(cell => {
+        const sig = getSignalStrength(cell.distance_km);
+        html += `<tr>
+          <td style="text-align:center"><input type="checkbox" class="cell-checkbox" data-cust-id="${custId}" value="${escHtml(cell.cell_id)}" ${cell.is_assigned?'checked':''} onchange="updateSelectedCount('${custId}')"></td>
+          <td><span class="id-chip">${escHtml(cell.cell_id)}</span></td>
+          <td>${escHtml(cell.cell_name||'—')}</td>
+          <td class="muted">${escHtml(cell.region||'—')}</td>
+          <td class="muted" style="font-size:12px">${escHtml(String(cell.latitude))}, ${escHtml(String(cell.longitude))}</td>
+          <td><strong>${escHtml(String(cell.distance_km))} km</strong></td>
+          <td>${sig}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table></div>
+        <div class="modal-actions">
+          <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="closeNearestCellsModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveCells('${msisdn}','${custId}')" id="save-btn-${custId}">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              Save selected cells
+            </button>
+          </div>
+        </div>
+        <div class="notice notice-success" id="save-ok-${custId}" style="display:none"></div>`;
+
+      body.innerHTML = html;
+      updateSelectedCount(custId);
+    } catch (err) {
+      body.innerHTML = `<div class="notice notice-warn">Error: ${escHtml(err.message)}</div>`;
+    }
+  });
+
+  
+  window.saveCells = async function (msisdn, custId) {
+    const cbs      = document.querySelectorAll(`#cell-tbl-${custId} .cell-checkbox:checked`);
+    const selected = [...cbs].map(cb => cb.value);
+    if (!selected.length) { alert('Please select at least one cell.'); return; }
+
+    const btn = document.getElementById(`save-btn-${custId}`);
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner" style="width:12px;height:12px;border-width:2px;border-top-color:#fff"></span> Saving…`;
+
+    try {
+      const res  = await fetch('/hbb/save-customer-cells/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ msisdn, selected_cells: selected })
+      });
+      const data = await res.json();
+      if (!data.success) { alert(data.error||'Failed to save cells.'); btn.disabled=false; btn.innerHTML='Save selected cells'; return; }
+      const ok = document.getElementById(`save-ok-${custId}`);
+      ok.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Saved ${data.saved_cells.length} cell${data.saved_cells.length!==1?'s':''}: ${escHtmlRaw(data.saved_cells.join(', '))}`;
+      ok.style.display = 'flex';
+      btn.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Saved`;
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+      btn.disabled = false;
+      btn.innerHTML = 'Save selected cells';
+    }
+  };
+
+  // ── Export ──────────────────────────────────────────────────
+  window.exportData = function () {
+    const activePanel = document.querySelector('.panel.active');
+    if (!activePanel) { alert('No active table to export'); return; }
+    const tableId = activePanel.querySelector('table').id;
+    const $t = $(`#${tableId}`);
+    if ($t.length && $.fn.dataTable.isDataTable($t)) {
+      $t.DataTable().button(0).trigger();
+    } else {
+      alert('Table not initialized for export');
+    }
+  };
+
+}); // end $(function)
+
+/* ══════════════════════════════════════════
+   GLOBAL MODAL & CELL HELPERS
+══════════════════════════════════════════ */
+function openDistanceModal()       { document.getElementById('distanceModal').style.display='flex'; document.body.style.overflow='hidden'; }
+function closeDistanceModal()      { document.getElementById('distanceModal').style.display='none'; document.body.style.overflow='auto'; }
+function openNearestCellsModal()   { document.getElementById('nearestCellsModal').style.display='flex'; document.body.style.overflow='hidden'; }
+function closeNearestCellsModal()  { document.getElementById('nearestCellsModal').style.display='none'; document.body.style.overflow='auto'; }
+function openCoordinateChecker()   { document.getElementById('coordinateCheckerModal').style.display='flex'; document.body.style.overflow='hidden'; }
+function closeCoordinateChecker()  { document.getElementById('coordinateCheckerModal').style.display='none'; document.body.style.overflow='auto'; }
+
+function getSignalStrength(dist) {
+  if (dist < 1) return '<span class="signal-strength signal-excellent">Excellent</span>';
+  if (dist < 3) return '<span class="signal-strength signal-good">Good</span>';
+  if (dist < 5) return '<span class="signal-strength signal-fair">Fair</span>';
+  return '<span class="signal-strength signal-poor">Poor</span>';
+}
+
+function updateSelectedCount(custId) {
+  const all     = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`);
+  const checked = document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]:checked`);
+  const el      = document.getElementById(`selectedCount-${custId}`);
+  if (el) el.textContent = `${checked.length} cells selected`;
+  const sa = document.getElementById(`selectAll-${custId}`);
+  if (sa) {
+    sa.checked       = checked.length === all.length && all.length > 0;
+    sa.indeterminate = checked.length > 0 && checked.length < all.length;
+  }
+}
+
+function toggleAllCells(custId) {
+  const sa = document.getElementById(`selectAll-${custId}`);
+  document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`).forEach(cb => cb.checked = sa.checked);
+  updateSelectedCount(custId);
+}
+
+function selectAllCells(custId) {
+  document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`).forEach(cb => cb.checked = true);
+  updateSelectedCount(custId);
+}
+
+function clearAllCells(custId) {
+  document.querySelectorAll(`.cell-checkbox[data-cust-id="${custId}"]`).forEach(cb => cb.checked = false);
+  updateSelectedCount(custId);
+}
+
+/* ══════════════════════════════════════════
+   COORDINATE CHECKER FUNCTION
+══════════════════════════════════════════ */
+async function checkCustomCoordinates() {
+  // Helper function for HTML escaping
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  
+  const latInput = document.getElementById('coordLatitude');
+  const lonInput = document.getElementById('coordLongitude');
+  const lat = parseFloat(latInput.value);
+  const lon = parseFloat(lonInput.value);
+  
+  // Validate coordinates
+  if (isNaN(lat) || isNaN(lon)) {
+    alert('Please enter valid latitude and longitude values.');
+    return;
+  }
+  
+  if (lat < -90 || lat > 90) {
+    alert('Latitude must be between -90 and 90.');
+    return;
+  }
+  
+  if (lon < -180 || lon > 180) {
+    alert('Longitude must be between -180 and 180.');
+    return;
+  }
+  
+  // Show loading state
+  const resultsDiv = document.getElementById('coordResults');
+  const cellsBody = document.getElementById('coordCellsBody');
+  const coordDisplay = document.getElementById('coordDisplay');
+  
+  console.log('DOM elements found:', { resultsDiv, cellsBody, coordDisplay }); // Debug log
+  
+  resultsDiv.style.display = 'block';
+  cellsBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px"><div class="loading-spinner"><div class="spinner"></div><p>Finding nearest cells...</p></div></td></tr>';
+  coordDisplay.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+  
+  try {
+    // Use the existing suggest-nearest-cells endpoint with custom coordinates
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    const response = await fetch(`/hbb/suggest-nearest-cells/?latitude=${lat}&longitude=${lon}&limit=20`, {
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('API Response:', data); // Debug log
+    
+    if (!data.success) {
+      cellsBody.innerHTML = `<tr><td colspan="7"><div class="notice notice-warn">${escHtml(data.error || 'Failed to find nearest cells')}</div></td></tr>`;
+      return;
+    }
+    
+    if (!data.suggested_cells || data.suggested_cells.length === 0) {
+      cellsBody.innerHTML = `<tr><td colspan="7"><div class="notice notice-info">No nearby cells found for these coordinates.</div></td></tr>`;
+      return;
+    }
+    
+    // Display results
+    let html = '';
+    data.suggested_cells.forEach((cell, index) => {
+      const signalStrength = getSignalStrength(cell.distance_km);
+      html += `<tr>
+        <td style="text-align:center;font-weight:600;color:var(--gray-500)">${index + 1}</td>
+        <td><span class="id-chip">${escHtml(cell.cell_id)}</span></td>
+        <td>${escHtml(cell.cell_name || '—')}</td>
+        <td class="muted">${escHtml(cell.region || '—')}</td>
+        <td class="muted" style="font-size:12px">${escHtml(String(cell.latitude))}, ${escHtml(String(cell.longitude))}</td>
+        <td><strong>${escHtml(String(cell.distance_km))} km</strong></td>
+        <td>${signalStrength}</td>
+      </tr>`;
+    });
+    
+    console.log('Generated HTML:', html); // Debug log
+    console.log('cellsBody element:', cellsBody); // Debug log
+    
+    cellsBody.innerHTML = html;
+    console.log('innerHTML set successfully'); // Debug log
+    
+  } catch (error) {
+    console.error('Coordinate check error:', error);
+    let errorMessage = 'An error occurred while checking coordinates.';
+    
+    if (error.name === 'AbortError') {
+      errorMessage = 'Request timed out. Please try again.';
+    } else if (error.message) {
+      errorMessage = `Error: ${escHtml(error.message)}`;
+    }
+    
+    cellsBody.innerHTML = `<tr><td colspan="7"><div class="notice notice-warn">${errorMessage}</div></td></tr>`;
+  }
+}
+</script>
 </body>
 </html>

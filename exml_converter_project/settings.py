@@ -48,7 +48,7 @@ DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes', 'on')
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,192.168.10.176').split(',')
     if host.strip()
 ]
 
@@ -172,3 +172,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB in bytes
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# FORCE_SCRIPT_NAME = '/hbb'
+STATIC_URL = 'static/'
+USE_X_FORWARDED_HOST = True
