@@ -174,6 +174,230 @@ def import_csv(request):
                 'error': 'File size must be less than 50MB'
             })
         
+        # Check if client wants streaming progress
+        streaming = request.GET.get('stream', 'false').lower() == 'true'
+        
+        if streaming:
+            return stream_csv_import(uploaded_file)
+        else:
+            return process_csv_import(uploaded_file)
+    
+    except Exception as e:
+        if request.GET.get('stream', 'false').lower() == 'true':
+            return StreamingHttpResponse(
+                f"data: {{'success': false, 'error': '{str(e)}'}}\n\n",
+                content_type="text/event-stream"
+            )
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'CSV processing error: {str(e)}'
+            })
+
+def stream_csv_import(uploaded_file):
+    """
+    Stream CSV import progress using Server-Sent Events
+    """
+    import time
+    from django.http import StreamingHttpResponse
+    
+    def generate():
+        try:
+            # Send initial progress
+            yield "data: {'type': 'progress', 'phase': 'validate', 'pct': 5, 'message': 'Validating CSV file'}\n\n"
+            
+            # Read and process CSV file
+            file_content = uploaded_file.read().decode('utf-8')
+            
+            # Remove BOM (Byte Order Mark) if present
+            if file_content.startswith('\ufeff'):
+                file_content = file_content[1:]
+            
+            # Send upload progress
+            yield "data: {'type': 'progress', 'phase': 'upload', 'pct': 20, 'message': 'Processing CSV file'}\n\n"
+            
+            # Parse CSV
+            import csv
+            import io
+            csv_reader = csv.DictReader(io.StringIO(file_content))
+            
+            yield "data: {'type': 'progress', 'phase': 'parse', 'pct': 40, 'message': 'Parsing CSV structure'}\n\n"
+            
+            # Count total rows for progress calculation
+            lines = file_content.split('\n')
+            total_rows = len([line for line in lines[1:] if line.strip()])
+            
+            records_found = 0
+            records_not_found = 0
+            records_with_data = 0
+            records_empty = 0
+            errors = []
+            processed_rows = 0
+            
+            yield f"data: {{'type': 'progress', 'phase': 'analyze', 'pct': 50, 'message': f'Analyzing {total_rows} records'}}\n\n"
+            
+            # Process rows with progress updates
+            for row_num, row in enumerate(csv_reader, start=2):
+                try:
+                    msisdn = row.get('msisdn', '').strip()
+                    latitude = row.get('latitude', '').strip()
+                    longitude = row.get('longitude', '').strip()
+                    location = row.get('location', '').strip()
+                    region = row.get('region', '').strip()
+                    
+                    # Skip completely empty rows
+                    if not any([msisdn, latitude, longitude, location, region]):
+                        records_empty += 1
+                        processed_rows += 1
+                        continue
+                    
+                    if not msisdn:
+                        errors.append(f'Row {row_num}: MSISDN is required but empty')
+                        processed_rows += 1
+                        continue
+                    
+                    # Validate MSISDN format
+                    if not msisdn.startswith('0') or len(msisdn) < 10:
+                        errors.append(f'Row {row_num}: Invalid MSISDN format: {msisdn}')
+                        processed_rows += 1
+                        continue
+                    
+                    # Validate coordinates if present
+                    if latitude:
+                        try:
+                            lat_float = float(latitude)
+                            if not (-90 <= lat_float <= 90):
+                                errors.append(f'Row {row_num}: Invalid latitude: {latitude}')
+                                processed_rows += 1
+                                continue
+                        except ValueError:
+                            errors.append(f'Row {row_num}: Invalid latitude format: {latitude}')
+                            processed_rows += 1
+                            continue
+                    
+                    if longitude:
+                        try:
+                            lon_float = float(longitude)
+                            if not (-180 <= lon_float <= 180):
+                                errors.append(f'Row {row_num}: Invalid longitude: {longitude}')
+                                processed_rows += 1
+                                continue
+                        except ValueError:
+                            errors.append(f'Row {row_num}: Invalid longitude format: {longitude}')
+                            processed_rows += 1
+                            continue
+                    
+                    # Enhanced MSISDN matching
+                    def normalize_msisdn(msisdn_str):
+                        if not msisdn_str:
+                            return ""
+                        clean_msisdn = ''.join(c for c in msisdn_str if c.isdigit())
+                        if len(clean_msisdn) >= 12:
+                            return clean_msisdn[-9:]
+                        elif len(clean_msisdn) >= 9:
+                            return clean_msisdn[-9:]
+                        else:
+                            return clean_msisdn
+                    
+                    normalized_csv_msisdn = normalize_msisdn(msisdn)
+                    
+                    # Check if customer exists
+                    coord = None
+                    if normalized_csv_msisdn:
+                        coord = CustomerCoordinate.objects.filter(msisdn=normalized_csv_msisdn).first()
+                        
+                        if not coord:
+                            possible_formats = [
+                                f"0{normalized_csv_msisdn}",
+                                f"250{normalized_csv_msisdn}",
+                                f"+250{normalized_csv_msisdn}",
+                                normalized_csv_msisdn,
+                                f"25{normalized_csv_msisdn}",
+                                f"00250{normalized_csv_msisdn}",
+                            ]
+                            
+                            for format_msisdn in possible_formats:
+                                if not coord:
+                                    coord = CustomerCoordinate.objects.filter(msisdn=format_msisdn).first()
+                    
+                    if coord:
+                        records_found += 1
+                        if latitude or longitude or location or region:
+                            records_with_data += 1
+                    else:
+                        records_not_found += 1
+                        format_examples = [f"0{normalized_csv_msisdn}", f"250{normalized_csv_msisdn}", f"+250{normalized_csv_msisdn}"]
+                        errors.append(f'Row {row_num}: Customer with MSISDN {msisdn} not found (tried: {", ".join(format_examples)})')
+                    
+                    processed_rows += 1
+                        
+                except Exception as e:
+                    errors.append(f'Row {row_num}: Error processing record - {str(e)}')
+                    processed_rows += 1
+                
+                # Send progress update every 50 records or at the end
+                if processed_rows % 50 == 0 or processed_rows == total_rows:
+                    progress_pct = 50 + (processed_rows / total_rows) * 40
+                    yield f"data: {{'type': 'progress', 'phase': 'analyze', 'pct': {progress_pct}, 'message': f'Processed {processed_rows}/{total_rows} records'}}\n\n"
+            
+            # Send final results
+            yield f"data: {{'type': 'progress', 'phase': 'complete', 'pct': 95, 'message': 'Finalizing results'}}\n\n"
+            
+            result_data = {
+                'success': True,
+                'message': 'CSV analysis completed - No database updates performed',
+                'total_rows': total_rows,
+                'records_found': records_found,
+                'records_not_found': records_not_found,
+                'records_with_data': records_with_data,
+                'records_empty': records_empty,
+                'errors': errors,
+                'processed_rows': processed_rows,
+                'analysis_only': True
+            }
+            
+            yield f"data: {{'type': 'complete', 'data': {json.dumps(result_data)}}}}\n\n"
+            
+        except Exception as e:
+            yield f"data: {{'type': 'error', 'error': '{str(e)}'}}\n\n"
+    
+    return StreamingHttpResponse(
+        generate(),
+        content_type="text/event-stream",
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*'
+        }
+    )
+
+def process_csv_import(uploaded_file):
+    """
+    Process CSV import without streaming (fallback)
+    """
+    try:
+        if 'file' not in request.FILES:
+            return JsonResponse({
+                'success': False,
+                'error': 'No file uploaded'
+            })
+        
+        uploaded_file = request.FILES['file']
+        
+        # Validate file extension
+        if not uploaded_file.name.lower().endswith('.csv'):
+            return JsonResponse({
+                'success': False,
+                'error': 'Please upload a CSV file'
+            })
+        
+        # Validate file size (max 50MB)
+        if uploaded_file.size > 50 * 1024 * 1024:
+            return JsonResponse({
+                'success': False,
+                'error': 'File size must be less than 50MB'
+            })
+        
         # Read and process CSV file
         import csv
         import io
@@ -267,48 +491,20 @@ def import_csv(request):
                 
                 # Enhanced MSISDN matching - handle various formats with caching and optimization
                 def normalize_msisdn(msisdn_str):
-                    """Normalize MSISDN to standard format with 250 country code prefix"""
+                    """Normalize MSISDN to standard format for matching"""
                     if not msisdn_str:
                         return ""
                     
                     # Remove all non-digit characters
                     clean_msisdn = ''.join(c for c in msisdn_str if c.isdigit())
                     
-                    # Valid Rwanda mobile prefixes (specific operator prefixes)
-                    rwanda_prefixes = ['072', '073', '078', '079']  # MTN: 072,073 | Airtel: 078,079
-                    
-                    # Handle Rwanda phone numbers - smart normalization
-                    if len(clean_msisdn) >= 12:  # Already has country code (e.g., +250781234567)
-                        # Extract the last 12 digits (250 + 9 digits)
-                        normalized = clean_msisdn[-12:]
-                        # Check if it's a valid Rwanda mobile number
-                        if normalized.startswith('250') and len(normalized) == 12:
-                            prefix = normalized[3:6] if len(normalized) >= 6 else ''
-                            if prefix in ['72', '73', '78', '79']:
-                                return normalized
-                        return clean_msisdn  # Return as-is if not valid Rwanda format
-                    elif len(clean_msisdn) == 10 and clean_msisdn.startswith('0'):
-                        # 10-digit format starting with 0 (e.g., 0781234567)
-                        prefix = clean_msisdn[0:3] if len(clean_msisdn) >= 3 else ''
-                        if prefix in rwanda_prefixes:
-                            return f"250{clean_msisdn[1:]}"  # 0781234567 -> 250781234567
-                        else:
-                            return clean_msisdn  # Not a valid Rwanda mobile prefix
-                    elif len(clean_msisdn) == 9:
-                        # 9-digit format (e.g., 781234567 or 078123456 without leading 0)
-                        if clean_msisdn.startswith('0'):
-                            # Remove leading 0 and check if valid
-                            prefix = clean_msisdn[0:3] if len(clean_msisdn) >= 3 else ''
-                            if prefix in rwanda_prefixes:
-                                return f"250{clean_msisdn[1:]}"  # 078123456 -> 25078123456
-                            else:
-                                return clean_msisdn  # Not valid Rwanda prefix
-                        else:
-                            # No leading 0, check if starts with valid prefix (should not happen for Rwanda)
-                            return clean_msisdn  # Not valid Rwanda format without leading 0
+                    # Handle Rwanda phone numbers (9 digits) and international formats
+                    if len(clean_msisdn) >= 12:  # International format with country code
+                        return clean_msisdn[-9:]  # Take last 9 digits
+                    elif len(clean_msisdn) >= 9:  # Standard format
+                        return clean_msisdn[-9:]
                     else:
-                        # Return as-is if it doesn't match expected Rwanda patterns
-                        return clean_msisdn
+                        return clean_msisdn  # Return as-is if too short
                 
                 # Create a cache for MSISDN lookups to avoid repeated database queries
                 if not hasattr(import_csv, '_msisdn_cache'):
@@ -540,25 +736,19 @@ def import_csv(request):
 @require_http_methods(["POST"])
 def import_exml(request):
     """
-    Handle EXML file import for customer cells from PCRF.
-    Updates existing CustomerCoordinate records or creates new ones.
-    Maps: MSISDN -> msisdn, Custom1/2/8 -> custom1/2/8, BillingDay -> billing_day, Custom3 -> custom3
+    Handle EXML file import for customer cells from PCRF with streaming progress
     """
-    import time
-    from django.db import transaction
-    from datetime import datetime
-    
-    start_time = time.time()
-    
     try:
         if 'file' not in request.FILES:
-            return JsonResponse({'success': False, 'error': 'No file uploaded'})
+            return JsonResponse({
+                'success': False,
+                'error': 'No file uploaded'
+            })
         
         uploaded_file = request.FILES['file']
         
         # Validate file extension
-        ext = uploaded_file.name.lower().split('.')[-1]
-        if ext not in ('exml', 'xml'):
+        if not (uploaded_file.name.lower().endswith('.exml') or uploaded_file.name.lower().endswith('.xml')):
             return JsonResponse({
                 'success': False,
                 'error': 'Please upload an EXML or XML file'
@@ -571,8 +761,169 @@ def import_exml(request):
                 'error': 'File size must be less than 50MB'
             })
         
-        # Read and process EXML file
-        file_content = uploaded_file.read().decode('utf-8')
+        # Check if client wants streaming progress
+        streaming = request.GET.get('stream', 'false').lower() == 'true'
+        
+        if streaming:
+            return stream_exml_import(uploaded_file)
+        else:
+            return process_exml_import(uploaded_file)
+    
+    except Exception as e:
+        if request.GET.get('stream', 'false').lower() == 'true':
+            return StreamingHttpResponse(
+                f"data: {{'success': false, 'error': '{str(e)}'}}\n\n",
+                content_type="text/event-stream"
+            )
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'EXML processing error: {str(e)}'
+            })
+
+def stream_exml_import(uploaded_file):
+    """
+    Stream EXML import progress using Server-Sent Events
+    """
+    import time
+    from django.http import StreamingHttpResponse
+    
+    def generate():
+        try:
+            # Send initial progress
+            yield "data: {'type': 'progress', 'phase': 'validate', 'pct': 5, 'message': 'Validating file'}\n\n"
+            
+            # Read and process EXML file
+            file_content = uploaded_file.read().decode('utf-8')
+            
+            # Send upload progress
+            yield "data: {'type': 'progress', 'phase': 'upload', 'pct': 20, 'message': 'Processing EXML file'}\n\n"
+            
+            # Parse EXML and extract customer cell assignments
+            from .exml_parser import FlatSubscriberDataParser, MixedXmlFlatParser
+            
+            flat_parser = FlatSubscriberDataParser()
+            mixed_parser = MixedXmlFlatParser()
+            
+            yield "data: {'type': 'progress', 'phase': 'parse', 'pct': 40, 'message': 'Parsing EXML structure'}\n\n"
+            
+            records_found = 0
+            records_not_found = 0
+            records_with_cells = 0
+            records_empty = 0
+            total_records = 0
+            errors = []
+            
+            if mixed_parser.is_mixed_format(file_content):
+                csv_data = mixed_parser.extract_csv_data(file_content)
+            elif flat_parser.is_flat_format(file_content):
+                csv_data = flat_parser.extract_csv_data(file_content)
+            else:
+                try:
+                    converter = EXMLToXMLConverter()
+                    xml_output = converter.convert(file_content)
+                    csv_data = extract_csv_properties(xml_output)
+                except ValueError:
+                    if mixed_parser.is_mixed_format(file_content):
+                        csv_data = mixed_parser.extract_csv_data(file_content)
+                    else:
+                        csv_data = flat_parser.extract_csv_data(file_content)
+            
+            # Process records with progress updates
+            total_records = len(csv_data)
+            processed = 0
+            
+            yield f"data: {{'type': 'progress', 'phase': 'analyze', 'pct': 50, 'message': f'Analyzing {total_records} records'}}\n\n"
+            
+            def normalize_msisdn(msisdn_str):
+                if not msisdn_str:
+                    return ""
+                clean_msisdn = ''.join(c for c in msisdn_str if c.isdigit())
+                return clean_msisdn[-9:] if len(clean_msisdn) >= 9 else clean_msisdn
+            
+            for record in csv_data:
+                processed += 1
+                try:
+                    msisdn = record.get('MSISDN', '').strip()
+                    custom3 = record.get('Custom3', '').strip()
+                    
+                    if not msisdn:
+                        records_empty += 1
+                        errors.append(f'Record {processed}: MSISDN is required but empty')
+                        continue
+                    
+                    normalized_msisdn = normalize_msisdn(msisdn)
+                    
+                    # Check if customer exists using flexible matching
+                    coord = None
+                    if normalized_msisdn:
+                        coord = CustomerCoordinate.objects.filter(msisdn=normalized_msisdn).first()
+                        
+                        if not coord:
+                            possible_formats = [
+                                f"0{normalized_msisdn}",
+                                f"250{normalized_msisdn}",
+                                f"+250{normalized_msisdn}",
+                                normalized_msisdn
+                            ]
+                            
+                            for format_msisdn in possible_formats:
+                                coord = CustomerCoordinate.objects.filter(msisdn=format_msisdn).first()
+                                if coord:
+                                    break
+                    
+                    if coord:
+                        records_found += 1
+                        if custom3:
+                            records_with_cells += 1
+                    else:
+                        records_not_found += 1
+                        errors.append(f'Record {processed}: Customer with MSISDN {msisdn} not found')
+                        
+                except Exception as e:
+                    errors.append(f'Record {processed}: Error processing record - {str(e)}')
+                
+                # Send progress update every 10 records or at the end
+                if processed % 10 == 0 or processed == total_records:
+                    progress_pct = 50 + (processed / total_records) * 40
+                    yield f"data: {{'type': 'progress', 'phase': 'analyze', 'pct': {progress_pct}, 'message': f'Processed {processed}/{total_records} records'}}\n\n"
+            
+            # Send final results
+            yield f"data: {{'type': 'progress', 'phase': 'complete', 'pct': 95, 'message': 'Finalizing results'}}\n\n"
+            
+            result_data = {
+                'success': True,
+                'message': 'EXML analysis completed - No database updates performed',
+                'total_records': total_records,
+                'records_found': records_found,
+                'records_not_found': records_not_found,
+                'records_with_cells': records_with_cells,
+                'records_empty': records_empty,
+                'errors': errors,
+                'analysis_only': True
+            }
+            
+            yield f"data: {{'type': 'complete', 'data': {json.dumps(result_data)}}\n\n"
+            
+        except Exception as e:
+            yield f"data: {{'type': 'error', 'error': '{str(e)}'}}\n\n"
+    
+    return StreamingHttpResponse(
+        generate(),
+        content_type="text/event-stream",
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*'
+        }
+    )
+
+def process_exml_import(uploaded_file):
+    """
+    Process EXML import without streaming (fallback)
+    """
+    # Read and process EXML file
+    file_content = uploaded_file.read().decode('utf-8')
         
         # Parse EXML and extract customer cell assignments
         from .exml_parser import FlatSubscriberDataParser, MixedXmlFlatParser
@@ -580,180 +931,98 @@ def import_exml(request):
         flat_parser = FlatSubscriberDataParser()
         mixed_parser = MixedXmlFlatParser()
         
+        records_processed = 0
+        errors = []
+        
         if mixed_parser.is_mixed_format(file_content):
+            # Parse mixed XML/flat subscriber data
             csv_data = mixed_parser.extract_csv_data(file_content)
         elif flat_parser.is_flat_format(file_content):
+            # Parse flat subscriber data directly
             csv_data = flat_parser.extract_csv_data(file_content)
         else:
+            # Try to convert as EXML first
             try:
                 converter = EXMLToXMLConverter()
                 xml_output = converter.convert(file_content)
                 csv_data = extract_csv_properties(xml_output)
             except ValueError:
+                # If EXML parsing fails, try mixed format first, then flat format as fallback
                 if mixed_parser.is_mixed_format(file_content):
                     csv_data = mixed_parser.extract_csv_data(file_content)
                 else:
                     csv_data = flat_parser.extract_csv_data(file_content)
         
-        # ── Smart MSISDN normalizer ──
-        def normalize_msisdn(msisdn_str):
-            """Normalize MSISDN. Only Rwanda mobiles (072,073,078,079) get 250 prefix."""
-            if not msisdn_str:
-                return ""
-            digits = ''.join(c for c in str(msisdn_str) if c.isdigit())
-            rwanda_prefixes = {'072', '073', '078', '079'}
-            
-            if len(digits) >= 12:
-                n = digits[-12:]
-                if n.startswith('250') and n[3:5] in ('72', '73', '78', '79'):
-                    return n
-                return digits
-            
-            if len(digits) == 10 and digits.startswith('0'):
-                if digits[:3] in rwanda_prefixes:
-                    return f"250{digits[1:]}"
-                return digits
-            
-            if len(digits) == 9:
-                if digits.startswith('0') and digits[:3] in rwanda_prefixes:
-                    return f"250{digits[1:]}"
-                return digits
-            
-            return digits
-        
-        # ── Smart type converters ──
-        def parse_int(val, default=None):
-            if not val or not str(val).strip():
-                return default
-            try:
-                return int(str(val).strip())
-            except (ValueError, TypeError):
-                return default
-        
-        def parse_datetime(val):
-            if not val or not str(val).strip():
-                return None
-            s = str(val).strip()
-            formats = [
-                '%Y-%m-%d %H:%M:%S',
-                '%Y-%m-%d %H:%M',
-                '%Y-%m-%d',
-                '%d/%m/%Y %H:%M:%S',
-                '%d/%m/%Y %H:%M',
-                '%d/%m/%Y',
-                '%m/%d/%Y %H:%M:%S',
-                '%m/%d/%Y',
-            ]
-            for fmt in formats:
-                try:
-                    return datetime.strptime(s, fmt)
-                except ValueError:
-                    continue
-            return None
-        
-        # ── Pre-load all customers into memory ──
-        customer_lookup = {}
-        for customer in CustomerCoordinate.objects.all().iterator():
-            msisdn = customer.msisdn
-            if msisdn:
-                normalized = normalize_msisdn(msisdn)
-                if normalized:
-                    customer_lookup[normalized] = customer
-                customer_lookup[msisdn] = customer
-        
-        # ── Statistics ──
-        records_updated = 0
-        records_inserted = 0
+        # Analysis-only processing (no database updates)
+        records_found = 0
+        records_not_found = 0
         records_with_cells = 0
         records_empty = 0
-        total_records = len(csv_data)
-        errors = []
+        total_records = 0
         
-        # ── Process records inside a transaction ──
-        records_for_frontend = []
+        # Enhanced MSISDN matching for analysis
+        def normalize_msisdn(msisdn_str):
+            if not msisdn_str:
+                return ""
+            clean_msisdn = ''.join(c for c in msisdn_str if c.isdigit())
+            return clean_msisdn[-9:] if len(clean_msisdn) >= 9 else clean_msisdn
         
-        with transaction.atomic():
-            for idx, record in enumerate(csv_data, 1):
-                try:
-                    raw_msisdn = str(record.get('MSISDN', '')).strip()
+        # Process extracted data for analysis
+        for record in csv_data:
+            total_records += 1
+            try:
+                msisdn = record.get('MSISDN', '').strip()
+                custom3 = record.get('Custom3', '').strip()
+                
+                if not msisdn:
+                    records_empty += 1
+                    errors.append(f'Record {total_records}: MSISDN is required but empty')
+                    continue
+                
+                # Normalize MSISDN for flexible matching
+                normalized_msisdn = normalize_msisdn(msisdn)
+                
+                # Check if customer exists using flexible matching
+                coord = None
+                if normalized_msisdn:
+                    # Try exact match first
+                    coord = CustomerCoordinate.objects.filter(msisdn=normalized_msisdn).first()
                     
-                    if not raw_msisdn:
-                        records_empty += 1
-                        errors.append(f'Record {idx}: MSISDN is empty')
-                        records_for_frontend.append({
-                            'msisdn': '', 'cell_id': '', 'status': 'empty',
-                            'has_cell': False
-                        })
-                        continue
-                    
-                    normalized_msisdn = normalize_msisdn(raw_msisdn)
-                    coord = customer_lookup.get(normalized_msisdn)
-                    
-                    # Parse fields with proper types
-                    custom1_val = parse_int(record.get('Custom1'))
-                    custom2_val = parse_datetime(record.get('Custom2'))
-                    custom8_val = parse_datetime(record.get('Custom8'))
-                    billing_val = parse_int(record.get('BillingDay'))
-                    custom3_val = str(record.get('Custom3', '') or '').strip()
-                    
-                    if coord:
-                        # ── UPDATE existing ──
-                        coord.custom1 = custom1_val
-                        coord.custom2 = custom2_val
-                        coord.custom8 = custom8_val
-                        coord.billing_day = billing_val
-                        coord.custom3 = custom3_val
-                        coord.save(update_fields=[
-                            'custom1', 'custom2', 'custom8', 'billing_day', 'custom3'
-                        ])
-                        records_updated += 1
-                    else:
-                        # ── INSERT new ──
-                        new_coord = CustomerCoordinate.objects.create(
-                            msisdn=normalized_msisdn,
-                            custom1=custom1_val,
-                            custom2=custom2_val,
-                            custom8=custom8_val,
-                            billing_day=billing_val,
-                            custom3=custom3_val
-                        )
-                        # Add to lookup so later records with same MSISDN are updates
-                        customer_lookup[normalized_msisdn] = new_coord
-                        records_inserted += 1
-                    
-                    if custom3_val:
+                    # If not found, try flexible matching
+                    if not coord:
+                        possible_formats = [
+                            f"0{normalized_msisdn}",
+                            f"250{normalized_msisdn}",
+                            f"+250{normalized_msisdn}",
+                            normalized_msisdn
+                        ]
+                        
+                        for format_msisdn in possible_formats:
+                            coord = CustomerCoordinate.objects.filter(msisdn=format_msisdn).first()
+                            if coord:
+                                break
+                
+                if coord:
+                    records_found += 1
+                    if custom3:
                         records_with_cells += 1
+                else:
+                    records_not_found += 1
+                    errors.append(f'Record {total_records}: Customer with MSISDN {msisdn} not found')
                     
-                    records_for_frontend.append({
-                        'msisdn': normalized_msisdn,
-                        'cell_id': custom3_val,
-                        'status': 'updated' if coord else 'inserted',
-                        'has_cell': bool(custom3_val)
-                    })
-                    
-                except Exception as e:
-                    errors.append(f'Record {idx}: {str(e)}')
-                    records_for_frontend.append({
-                        'msisdn': str(record.get('MSISDN', '')),
-                        'cell_id': str(record.get('Custom3', '')),
-                        'status': 'error',
-                        'has_cell': False
-                    })
-        
-        processing_time_ms = int((time.time() - start_time) * 1000)
+            except Exception as e:
+                errors.append(f'Record {total_records}: Error processing record - {str(e)}')
         
         return JsonResponse({
             'success': True,
-            'message': f'EXML import completed — {records_updated} updated, {records_inserted} inserted',
+            'message': f'EXML analysis completed - No database updates performed',
             'total_records': total_records,
-            'records_updated': records_updated,
-            'records_inserted': records_inserted,
+            'records_found': records_found,
+            'records_not_found': records_not_found,
             'records_with_cells': records_with_cells,
             'records_empty': records_empty,
             'errors': errors,
-            'processing_time_ms': processing_time_ms,
-            'analysis_only': False,
-            'records': records_for_frontend
+            'analysis_only': True
         })
         
     except UnicodeDecodeError:
@@ -762,11 +1031,9 @@ def import_exml(request):
             'error': 'File encoding error. Please ensure the file is UTF-8 encoded.'
         })
     except Exception as e:
-        import traceback
         return JsonResponse({
             'success': False,
-            'error': f'EXML processing error: {str(e)}',
-            'detail': traceback.format_exc()
+            'error': f'EXML processing error: {str(e)}'
         })
 
 
