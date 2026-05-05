@@ -3,9 +3,13 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('import-data/', views.import_data, name='import_data_direct'),
+    path('download-csv-template/', views.download_csv_template, name='download_csv_template'),
     path('hbb/', views.dashboard, name='dashboard_hbb'),
-    path('hbb/converter/', views.index, name='index'),
-    path('hbb/convert/', views.convert_exml, name='convert_exml'),
+    path('hbb/import-data/', views.import_data, name='import_data'),
+    path('hbb/import-csv/', views.import_csv, name='import_csv'),
+    path('hbb/import-exml/', views.import_exml, name='import_exml'),
+    path('hbb/converter/', views.import_data, name='legacy_converter'),
     path('hbb/convert-csv/', views.convert_to_csv, name='convert_to_csv'),
     path('hbb/upload/', views.upload_exml_file, name='upload_exml_file'),
     path('hbb/examples/', views.example_exml, name='example_exml'),

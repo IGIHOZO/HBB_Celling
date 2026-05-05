@@ -486,9 +486,9 @@ html, body {
       <i class="fas fa-home"></i>
       <span>Dashboard</span>
     </a>
-    <a href="converter/" class="nav-item">
-      <i class="fas fa-exchange-alt"></i>
-      <span>Converter</span>
+    <a href="/hbb/import-data/" class="nav-item">
+      <i class="fas fa-file-import"></i>
+      <span>Import Data</span>
     </a>
     <a href="coordinates/" class="nav-item">
       <i class="fas fa-map-marker-alt"></i>
@@ -498,9 +498,9 @@ html, body {
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Quick Actions</div>
 
-    <div class="nav-item" onclick="window.open('/hbb/converter/', '_blank')">
+    <div class="nav-item" onclick="window.open('/hbb/import-data/', '_blank')">
       <i class="fas fa-rocket"></i>
-      <span>Quick Convert</span>
+      <span>Quick Import</span>
     </div>
     <div class="nav-item" onclick="window.open('/hbb/coordinates/', '_blank')">
       <i class="fas fa-search-location"></i>
@@ -522,7 +522,7 @@ html, body {
     <header class="topbar">
       <div class="topbar-left">
         <h2>HBB Customer Dashboard</h2>
-        <p>EXML Processing & Location Management Hub</p>
+        <p>CSV & EXML Import Management Hub</p>
       </div>
       <div class="topbar-right">
         <div class="spinner" id="spinnerGlobal"></div>
@@ -537,17 +537,17 @@ html, body {
 
       <!-- DASHBOARD CARDS -->
       <div class="dashboard-grid">
-        <a href="converter/" class="dashboard-card">
+        <a href="import-data/" class="dashboard-card">
           <div class="card-icon icon-blue">
-            <i class="fas fa-exchange-alt"></i>
+            <i class="fas fa-file-import"></i>
           </div>
           <div class="card-content">
-            <div class="card-title">EXML Converter</div>
+            <div class="card-title">Import Data</div>
             <div class="card-desc">
-              Transform EXML export files into structured XML. Process subscriber records and export to CSV for data import.
+              Import customer coordinates from CSV files and customer cells from PCRF EXML files. Update database with new subscriber information.
             </div>
             <div class="card-action">
-              Open Converter <i class="fas fa-arrow-right"></i>
+              Open Import Data <i class="fas fa-arrow-right"></i>
             </div>
           </div>
         </a>

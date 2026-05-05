@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ObjectDoesNotExist
@@ -126,6 +126,485 @@ def dashboard(request):
     }
     
     return render(request, 'converter/dashboard.html', context)
+
+def import_data(request):
+    """
+    Import data main page - choose between CSV and EXML imports
+    """
+    return render(request, 'converter/import_data.html')
+
+
+def download_csv_template(request):
+    """
+    Download CSV template for customer coordinates import
+    """
+    csv_content = "msisdn,isp,region,location,activation_date,longitude,latitude,comments,remarks"
+    
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="coordinates_template.csv"'
+    return response
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def import_csv(request):
+    """
+    Handle CSV file import for customer coordinates
+    """
+    try:
+        if 'file' not in request.FILES:
+            return JsonResponse({
+                'success': False,
+                'error': 'No file uploaded'
+            })
+        
+        uploaded_file = request.FILES['file']
+        
+        # Validate file extension
+        if not uploaded_file.name.lower().endswith('.csv'):
+            return JsonResponse({
+                'success': False,
+                'error': 'Please upload a CSV file'
+            })
+        
+        # Validate file size (max 50MB)
+        if uploaded_file.size > 50 * 1024 * 1024:
+            return JsonResponse({
+                'success': False,
+                'error': 'File size must be less than 50MB'
+            })
+        
+        # Read and process CSV file
+        import csv
+        import io
+        import time
+        
+        file_content = uploaded_file.read().decode('utf-8')
+        
+        # Remove BOM (Byte Order Mark) if present
+        if file_content.startswith('\ufeff'):
+            file_content = file_content[1:]
+        
+        csv_reader = csv.DictReader(io.StringIO(file_content))
+        
+        # Start timing for accurate progress calculation
+        start_time = time.time()
+        
+        records_found = 0
+        records_not_found = 0
+        records_with_data = 0
+        records_empty = 0
+        errors = []
+        
+        # Count total rows for progress calculation
+        lines = file_content.split('\n')
+        total_rows = len([line for line in lines[1:] if line.strip()])  # Exclude header and empty lines
+        csv_reader = csv.DictReader(io.StringIO(file_content))
+        
+        # Validate CSV structure
+        expected_headers = ['msisdn', 'latitude', 'longitude', 'location', 'region', 'activation_date', 'longitude', 'latitude', 'comments', 'remarks']
+        if csv_reader.fieldnames:
+            missing_headers = [h for h in expected_headers if h not in csv_reader.fieldnames]
+            if missing_headers:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'CSV missing required columns: {", ".join(missing_headers)}'
+                })
+        csv_reader = csv.DictReader(io.StringIO(file_content))
+        
+        processed_rows = 0
+        
+        # Process rows with progress reporting
+        for row_num, row in enumerate(csv_reader, start=2):
+            try:
+                msisdn = row.get('msisdn', '').strip()
+                latitude = row.get('latitude', '').strip()
+                longitude = row.get('longitude', '').strip()
+                location = row.get('location', '').strip()
+                region = row.get('region', '').strip()
+                
+                # Skip completely empty rows
+                if not any([msisdn, latitude, longitude, location, region]):
+                    records_empty += 1
+                    processed_rows += 1
+                    continue
+                
+                if not msisdn:
+                    errors.append(f'Row {row_num}: MSISDN is required but empty')
+                    processed_rows += 1
+                    continue
+                
+                # Validate MSISDN format
+                if not msisdn.startswith('0') or len(msisdn) < 10:
+                    errors.append(f'Row {row_num}: Invalid MSISDN format: {msisdn}')
+                    processed_rows += 1
+                    continue
+                
+                # Validate coordinates if present
+                if latitude:
+                    try:
+                        lat_float = float(latitude)
+                        if not (-90 <= lat_float <= 90):
+                            errors.append(f'Row {row_num}: Invalid latitude: {latitude}')
+                            processed_rows += 1
+                            continue
+                    except ValueError:
+                        errors.append(f'Row {row_num}: Invalid latitude format: {latitude}')
+                        processed_rows += 1
+                        continue
+                
+                if longitude:
+                    try:
+                        lon_float = float(longitude)
+                        if not (-180 <= lon_float <= 180):
+                            errors.append(f'Row {row_num}: Invalid longitude: {longitude}')
+                            processed_rows += 1
+                            continue
+                    except ValueError:
+                        errors.append(f'Row {row_num}: Invalid longitude format: {longitude}')
+                        processed_rows += 1
+                        continue
+                
+                # Enhanced MSISDN matching - handle various formats with caching and optimization
+                def normalize_msisdn(msisdn_str):
+                    """Normalize MSISDN to standard format for matching"""
+                    if not msisdn_str:
+                        return ""
+                    
+                    # Remove all non-digit characters
+                    clean_msisdn = ''.join(c for c in msisdn_str if c.isdigit())
+                    
+                    # Handle Rwanda phone numbers (9 digits) and international formats
+                    if len(clean_msisdn) >= 12:  # International format with country code
+                        return clean_msisdn[-9:]  # Take last 9 digits
+                    elif len(clean_msisdn) >= 9:  # Standard format
+                        return clean_msisdn[-9:]
+                    else:
+                        return clean_msisdn  # Return as-is if too short
+                
+                # Create a cache for MSISDN lookups to avoid repeated database queries
+                if not hasattr(import_csv, '_msisdn_cache'):
+                    import_csv._msisdn_cache = {}
+                
+                # Normalize CSV MSISDN
+                normalized_csv_msisdn = normalize_msisdn(msisdn)
+                
+                # Check if customer exists using enhanced matching with caching
+                coord = None
+                if normalized_csv_msisdn:
+                    # Check cache first
+                    cache_key = normalized_csv_msisdn
+                    if cache_key in import_csv._msisdn_cache:
+                        coord = import_csv._msisdn_cache[cache_key]
+                    else:
+                        # Try exact match first
+                        coord = CustomerCoordinate.objects.filter(msisdn=normalized_csv_msisdn).first()
+                        
+                        # If not found, try enhanced flexible matching
+                        if not coord:
+                            # Enhanced format matching with Rwanda-specific prefixes
+                            possible_formats = [
+                                f"0{normalized_csv_msisdn}",  # 0771000001
+                                f"250{normalized_csv_msisdn}",  # 250771000001
+                                f"+250{normalized_csv_msisdn}",  # +250771000001
+                                normalized_csv_msisdn,  # 771000001
+                                f"25{normalized_csv_msisdn}",  # 25771000001 (some systems)
+                                f"00250{normalized_csv_msisdn}",  # 00250771000001
+                            ]
+                            
+                            # Use bulk query for better performance
+                            for format_msisdn in possible_formats:
+                                if not coord:
+                                    coord = CustomerCoordinate.objects.filter(msisdn=format_msisdn).first()
+                        
+                        # Cache the result
+                        import_csv._msisdn_cache[cache_key] = coord
+                
+                if coord:
+                    records_found += 1
+                    # Check if row has coordinate data
+                    if latitude or longitude or location or region:
+                        records_with_data += 1
+                else:
+                    records_not_found += 1
+                    # Enhanced error reporting with format suggestions
+                    format_examples = [f"0{normalized_csv_msisdn}", f"250{normalized_csv_msisdn}", f"+250{normalized_csv_msisdn}"]
+                    errors.append(f'Row {row_num}: Customer with MSISDN {msisdn} not found (tried: {", ".join(format_examples)})')
+                
+                processed_rows += 1
+                    
+            except Exception as e:
+                errors.append(f'Row {row_num}: Error processing record - {str(e)}')
+                processed_rows += 1
+            
+            # Calculate progress percentage for real-time feedback
+            current_progress = (processed_rows / total_rows) * 100 if total_rows > 0 else 0
+        
+        # Check if this is a dry run or actual import
+        dry_run = request.POST.get('dry_run', 'true').lower() == 'true'
+        
+        if dry_run:
+            # Return analysis results without database changes
+            return JsonResponse({
+                'success': True,
+                'message': f'CSV analysis completed - No database updates performed',
+                'records_found': records_found,
+                'records_not_found': records_not_found,
+                'records_with_data': records_with_data,
+                'records_empty': records_empty,
+                'errors': errors,
+                'total_rows': total_rows,
+                'processed_rows': processed_rows,
+                'processing_time_ms': int((time.time() - start_time) * 1000),
+                'rows_per_second': round(processed_rows / max(1, time.time() - start_time), 2),
+                'dry_run': True
+            })
+        else:
+            # Perform actual database operations with transaction
+            from django.db import transaction
+            
+            try:
+                with transaction.atomic():
+                    # Truncate table
+                    truncate_count = CustomerCoordinate.objects.all().delete()[0]
+                    
+                    # Reset ID sequence to start from 1
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        # More reliable sequence reset
+                        cursor.execute("TRUNCATE TABLE customer_coordinates RESTART IDENTITY CASCADE")
+                    
+                    # Reset file pointer for re-reading
+                    uploaded_file.seek(0)
+                    file_content = uploaded_file.read().decode('utf-8')
+                    if file_content.startswith('\ufeff'):
+                        file_content = file_content[1:]
+                    csv_reader = csv.DictReader(io.StringIO(file_content))
+                    
+                    # Insert all records
+                    inserted_count = 0
+                    insert_errors = []
+                    
+                    for row_num, row in enumerate(csv_reader, start=2):
+                        try:
+                            msisdn = row.get('msisdn', '').strip()
+                            if not msisdn:
+                                insert_errors.append(f'Row {row_num}: MSISDN is required but empty')
+                                continue
+                            
+                            # Normalize MSISDN to 250771000001 format
+                            def normalize_for_insert(msisdn_str):
+                                if not msisdn_str:
+                                    return ""
+                                clean_msisdn = ''.join(c for c in msisdn_str if c.isdigit())
+                                # Take last 9 digits and add 250 prefix
+                                if len(clean_msisdn) >= 9:
+                                    return f"250{clean_msisdn[-9:]}"
+                                return clean_msisdn
+                            
+                            # Clean coordinate values - handle DMS and special formats with increased precision
+                            def clean_coordinate(coord_str):
+                                if not coord_str:
+                                    return None
+                                
+                                try:
+                                    # Handle DMS format like "30° 5'55.42"E"
+                                    if '°' in coord_str or "'" in coord_str:
+                                        # Simple DMS to decimal conversion
+                                        cleaned = coord_str.replace('°', ' ').replace("'", ' ').replace('"', ' ').replace('E', '').replace('W', '').replace('N', '').replace('S', '')
+                                        parts = cleaned.split()
+                                        if len(parts) >= 3:
+                                            degrees = float(parts[0])
+                                            minutes = float(parts[1]) 
+                                            seconds = float(parts[2])
+                                            decimal = degrees + minutes/60 + seconds/3600
+                                            # Validate coordinate range
+                                            if abs(decimal) > 180:  # Longitude range
+                                                return None
+                                            if abs(decimal) > 90:   # Latitude range  
+                                                return None
+                                            return decimal
+                                    
+                                    # Handle regular decimal coordinates
+                                    cleaned = coord_str.replace(' ', '').replace('°', '').replace("'", '').replace('"', '')
+                                    cleaned = ''.join(c for c in cleaned if c.isdigit() or c in '-.')
+                                    
+                                    if cleaned:
+                                        decimal = float(cleaned)
+                                        # Validate coordinate ranges (database now supports higher precision)
+                                        if abs(decimal) > 180:  # Max for longitude
+                                            return None
+                                        if abs(decimal) > 90:   # Max for latitude
+                                            return None
+                                        # Database precision is now numeric(15,10) - supports up to 99999.9999999999
+                                        if abs(decimal) >= 100000:
+                                            return None
+                                        return decimal
+                                    
+                                except (ValueError, IndexError):
+                                    return None
+                                
+                                return None
+                            
+                            normalized_msisdn = normalize_for_insert(msisdn)
+                            cleaned_latitude = clean_coordinate(row.get('latitude', '').strip())
+                            cleaned_longitude = clean_coordinate(row.get('longitude', '').strip())
+                            
+                            # Create new record with cleaned coordinates
+                            coord = CustomerCoordinate.objects.create(
+                                msisdn=normalized_msisdn,
+                                latitude=cleaned_latitude,
+                                longitude=cleaned_longitude,
+                                location=row.get('location', '').strip() or None,
+                                region=row.get('region', '').strip() or None,
+                                activation_date=row.get('activation_date', '').strip() or None,
+                                comments=row.get('comments', '').strip() or None,
+                                remarks=row.get('remarks', '').strip() or None,
+                                isp=row.get('isp', '').strip() or None
+                            )
+                            inserted_count += 1
+                            
+                        except Exception as e:
+                            insert_errors.append(f'Row {row_num}: Error inserting record - {str(e)}')
+                    
+                    # If critical errors occurred, rollback the transaction
+                    if len(insert_errors) > total_rows * 0.5:  # Allow up to 50% errors
+                        raise Exception(f"Too many insert errors occurred ({len(insert_errors)} errors, {len(insert_errors)/total_rows*100:.1f}% of total). First few: {'; '.join(insert_errors[:3])}")
+                    
+                    # Log warning if many errors but continue
+                    if len(insert_errors) > 100:
+                        print(f"Warning: {len(insert_errors)} insert errors occurred out of {total_rows} total rows")
+                    
+                    # Transaction will commit automatically if no exceptions
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'CSV import completed successfully',
+                        'truncated_count': truncate_count,
+                        'inserted_count': inserted_count,
+                        'errors': insert_errors,
+                        'total_rows': total_rows,
+                        'processing_time_ms': int((time.time() - start_time) * 1000),
+                        'dry_run': False
+                    })
+                    
+            except Exception as e:
+                # Transaction automatically rolled back
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Database operation failed: {str(e)}',
+                    'message': 'All changes have been rolled back'
+                })
+        
+    except UnicodeDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'File encoding error. Please ensure the file is UTF-8 encoded.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'CSV processing error: {str(e)}'
+        })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def import_exml(request):
+    """
+    Handle EXML file import for customer cells from PCRF
+    """
+    try:
+        if 'file' not in request.FILES:
+            return JsonResponse({
+                'success': False,
+                'error': 'No file uploaded'
+            })
+        
+        uploaded_file = request.FILES['file']
+        
+        # Validate file extension
+        if not (uploaded_file.name.lower().endswith('.exml') or uploaded_file.name.lower().endswith('.xml')):
+            return JsonResponse({
+                'success': False,
+                'error': 'Please upload an EXML or XML file'
+            })
+        
+        # Validate file size (max 50MB)
+        if uploaded_file.size > 50 * 1024 * 1024:
+            return JsonResponse({
+                'success': False,
+                'error': 'File size must be less than 50MB'
+            })
+        
+        # Read and process EXML file
+        file_content = uploaded_file.read().decode('utf-8')
+        
+        # Parse EXML and extract customer cell assignments
+        from .exml_parser import FlatSubscriberDataParser, MixedXmlFlatParser
+        
+        flat_parser = FlatSubscriberDataParser()
+        mixed_parser = MixedXmlFlatParser()
+        
+        records_processed = 0
+        errors = []
+        
+        if mixed_parser.is_mixed_format(file_content):
+            # Parse mixed XML/flat subscriber data
+            csv_data = mixed_parser.extract_csv_data(file_content)
+        elif flat_parser.is_flat_format(file_content):
+            # Parse flat subscriber data directly
+            csv_data = flat_parser.extract_csv_data(file_content)
+        else:
+            # Try to convert as EXML first
+            try:
+                converter = EXMLToXMLConverter()
+                xml_output = converter.convert(file_content)
+                csv_data = extract_csv_properties(xml_output)
+            except ValueError:
+                # If EXML parsing fails, try mixed format first, then flat format as fallback
+                if mixed_parser.is_mixed_format(file_content):
+                    csv_data = mixed_parser.extract_csv_data(file_content)
+                else:
+                    csv_data = flat_parser.extract_csv_data(file_content)
+        
+        # Process extracted data
+        for record in csv_data:
+            try:
+                msisdn = record.get('MSISDN', '').strip()
+                custom3 = record.get('Custom3', '').strip()
+                
+                if not msisdn:
+                    continue
+                
+                # Update customer coordinates with custom3 (cell assignments)
+                coord = CustomerCoordinate.objects.filter(msisdn=msisdn).first()
+                if coord:
+                    coord.custom3 = custom3
+                    coord.save()
+                    records_processed += 1
+                    
+            except Exception as e:
+                errors.append(f'Error processing record for MSISDN {record.get("MSISDN", "unknown")}: {str(e)}')
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'EXML import completed successfully',
+            'records_processed': records_processed,
+            'errors': errors
+        })
+        
+    except UnicodeDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'File encoding error. Please ensure the file is UTF-8 encoded.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'EXML processing error: {str(e)}'
+        })
+
 
 def index(request):
     """

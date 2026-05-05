@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>HBB Customer Manager · Import Data</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #0b1f3a;
+  --navy-light: #132c50;
+  --navy-mid: #1c3e6b;
+  --blue: #1a6ebd;
+  --blue-bright: #2589e8;
+  --blue-pale: #dbeeff;
+  --teal: #0f8a6e;
+  --teal-pale: #d4f5ed;
+  --amber: #b86e00;
+  --amber-pale: #fff3d6;
+  --red: #b91c1c;
+  --red-pale: #fee2e2;
+  --gray-50: #f7f9fc;
+  --gray-100: #eef1f6;
+  --gray-200: #dde3ed;
+  --gray-300: #bbc6d6;
+  --gray-400: #8898b3;
+  --gray-500: #5c6f8a;
+  --gray-700: #2d3f55;
+  --gray-900: #0d1b2e;
+  --sidebar-w: 230px;
+  --topbar-h: 58px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+  --transition: .15s ease;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ─── LAYOUT ─── */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+  transition: width var(--transition);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.brand-logo {
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--navy-mid);
+  flex-shrink: 0;
+}
+
+.brand-text h1 { font-size: 13.5px; font-weight: 600; color: #fff; letter-spacing: -.2px; white-space: nowrap; }
+.brand-text p  { font-size: 10.5px; color: rgba(255,255,255,.4); white-space: nowrap; margin-top: 1px; }
+
+.sidebar-section-label {
+  font-size: 9.5px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: rgba(255,255,255,.28);
+  padding: 16px 16px 6px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; margin: 1px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 400;
+  color: rgba(255,255,255,.55);
+  cursor: pointer; text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+  border-left: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.nav-item i { width: 16px; text-align: center; font-size: 12px; flex-shrink: 0; opacity: .7; }
+.nav-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); }
+.nav-item.active { background: rgba(37,137,232,.18); color: #fff; border-left-color: var(--blue-bright); font-weight: 500; }
+.nav-item.active i { opacity: 1; color: var(--blue-bright); }
+
+.sidebar-divider { height: 1px; background: rgba(255,255,255,.07); margin: 10px 16px; }
+
+.sidebar-bottom { margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,.07); }
+
+.status-badge {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.04);
+  border-radius: var(--radius-sm); padding: 7px 10px;
+}
+
+.pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #22c55e; flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(34,197,94,.25);
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(34,197,94,.25); }
+  50%       { box-shadow: 0 0 0 4px rgba(34,197,94,.1); }
+}
+
+/* ─── MAIN ─── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ─── TOPBAR ─── */
+.topbar {
+  height: var(--topbar-h);
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center;
+  padding: 0 24px; gap: 16px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-left h2 { font-size: 15px; font-weight: 600; color: var(--gray-900); letter-spacing: -.2px; }
+.topbar-left p  { font-size: 12px; color: var(--gray-500); margin-top: 1px; }
+.topbar-right   { display: flex; align-items: center; gap: 8px; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: var(--radius-sm);
+  font-family: var(--font-sans); font-size: 12.5px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--gray-200);
+  background: #fff; color: var(--gray-700);
+  transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
+  white-space: nowrap; text-decoration: none;
+}
+.btn:hover { background: var(--gray-50); border-color: var(--gray-300); }
+.btn:active { transform: scale(.98); }
+
+.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(26,110,189,.3); }
+.btn-primary:hover { background: #155ea0; border-color: #155ea0; }
+
+.btn-success { background: var(--teal); border-color: var(--teal); color: #fff; }
+.btn-success:hover { background: #0a6e58; }
+
+.btn-danger { color: var(--red); border-color: rgba(185,28,28,.2); }
+.btn-danger:hover { background: var(--red-pale); border-color: rgba(185,28,28,.3); }
+
+/* ─── CONTENT ─── */
+.content {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px 24px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+/* ─── TOAST ─── */
+.toast-stack {
+  position: fixed; top: 14px; right: 18px;
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 9999; pointer-events: none;
+}
+
+.toast {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 16px; border-radius: var(--radius);
+  font-size: 12.5px; font-weight: 500;
+  background: #fff; border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-md);
+  animation: slideIn .2s ease;
+  pointer-events: all; max-width: 320px;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.toast.success { border-left: 3px solid var(--teal); color: var(--teal); background: var(--teal-pale); }
+.toast.error   { border-left: 3px solid var(--red);  color: var(--red);  background: var(--red-pale);  }
+.toast.info    { border-left: 3px solid var(--blue); color: var(--blue); background: var(--blue-pale); }
+
+/* ─── IMPORT GRID ─── */
+.import-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;
+}
+
+.import-card {
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: var(--radius); padding: 32px 28px;
+  text-decoration: none; display: flex; flex-direction: column; gap: 20px;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  box-shadow: var(--shadow-sm); position: relative; overflow: hidden; cursor: pointer;
+}
+
+.import-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--blue), var(--blue-bright));
+  transform: scaleX(0); transform-origin: left; transition: transform var(--transition);
+}
+
+.import-card:hover { border-color: var(--blue-bright); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.import-card:hover::before { transform: scaleX(1); }
+
+.import-icon { width: 64px; height: 64px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.icon-csv  { background: var(--teal-pale); color: var(--teal); }
+.icon-exml { background: var(--amber-pale); color: var(--amber); }
+
+.import-title { font-size: 20px; font-weight: 600; color: var(--gray-900); margin-bottom: 8px; letter-spacing: -.2px; }
+.import-desc  { font-size: 14px; color: var(--gray-500); line-height: 1.6; margin-bottom: 16px; }
+
+.import-features { list-style: none; }
+.import-features li { font-size: 13px; color: var(--gray-600); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.import-features li i { color: var(--teal); font-size: 10px; width: 16px; text-align: center; }
+
+.import-action { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--blue); transition: gap var(--transition); align-self: flex-start; }
+.import-card:hover .import-action { gap: 12px; }
+
+/* ─── UPLOAD ZONE ─── */
+.upload-zone {
+  background: #fff; border: 2px dashed var(--gray-300);
+  border-radius: var(--radius); padding: 40px 32px;
+  text-align: center; cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--blue-bright); background: #f0f7ff; }
+.upload-zone .upload-icon { font-size: 48px; color: var(--blue); margin-bottom: 16px; }
+.upload-zone h3 { font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 8px; }
+.upload-zone p  { font-size: 14px; color: var(--gray-500); margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto; }
+
+/* ─── RESULTS ─── */
+.results-section {
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow-sm); display: none;
+}
+
+.results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.results-title  { font-size: 16px; font-weight: 600; color: var(--gray-900); display: flex; align-items: center; gap: 8px; }
+
+.results-content {
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.6;
+  background: var(--gray-50); padding: 16px;
+  border-radius: var(--radius-sm); border: 1px solid var(--gray-100);
+  max-height: 300px; overflow-y: auto; white-space: pre-wrap;
+}
+
+/* ─── SPINNER (topbar) ─── */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--gray-200); border-top-color: var(--blue);
+  border-radius: 50%; animation: spin .65s linear infinite; display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════════════════════════
+   PROFESSIONAL PROGRESS PANEL
+   ══════════════════════════════════════════════════════════ */
+.progress-panel {
+  display: none;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+/* Colour-coded accent strip at the top — driven by data-state */
+.progress-panel[data-state="running"]  { border-top: 3px solid var(--blue-bright); }
+.progress-panel[data-state="success"]  { border-top: 3px solid var(--teal); }
+.progress-panel[data-state="error"]    { border-top: 3px solid var(--red); }
+
+/* ── Header row ── */
+.pp-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 20px 14px;
+}
+
+/* Animated ring spinner */
+.pp-ring {
+  position: relative; flex-shrink: 0;
+  width: 42px; height: 42px;
+}
+
+.pp-ring svg {
+  width: 42px; height: 42px;
+  transform: rotate(-90deg);
+}
+
+.pp-ring .ring-track {
+  fill: none; stroke: var(--gray-100); stroke-width: 4;
+}
+
+.pp-ring .ring-fill {
+  fill: none; stroke: var(--blue-bright); stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 113; /* circumference ≈ 2π×18 */
+  stroke-dashoffset: 113;
+  transition: stroke-dashoffset .45s cubic-bezier(.4,0,.2,1), stroke .25s ease;
+}
+
+/* ring states */
+.progress-panel[data-state="success"] .ring-fill { stroke: var(--teal); }
+.progress-panel[data-state="error"]   .ring-fill { stroke: var(--red);  }
+
+/* Checkmark / X icon inside ring (only visible in terminal states) */
+.pp-ring-icon {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; opacity: 0;
+  transition: opacity .2s ease;
+}
+.progress-panel[data-state="success"] .pp-ring-icon { color: var(--teal); opacity: 1; }
+.progress-panel[data-state="error"]   .pp-ring-icon { color: var(--red);  opacity: 1; }
+
+/* Spinning animation only while running */
+.progress-panel[data-state="running"] .pp-ring svg { animation: ringRotate 1.6s linear infinite; }
+@keyframes ringRotate { to { transform: rotate(270deg); } }
+
+/* Percent label inside ring (hidden in terminal states) */
+.pp-ring-pct {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--blue); font-family: var(--font-mono);
+  transition: opacity .2s ease;
+}
+.progress-panel[data-state="success"] .pp-ring-pct,
+.progress-panel[data-state="error"]   .pp-ring-pct { opacity: 0; }
+
+/* ── Text block ── */
+.pp-text { flex: 1; min-width: 0; }
+
+.pp-phase {
+  font-size: 13.5px; font-weight: 600;
+  color: var(--gray-900); letter-spacing: -.1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.pp-detail {
+  font-size: 12px; color: var(--gray-500); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── Elapsed time ── */
+.pp-elapsed {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--gray-400); flex-shrink: 0;
+  padding: 3px 8px; border-radius: 20px;
+  background: var(--gray-100); letter-spacing: .02em;
+}
+
+/* ── Linear bar track ── */
+.pp-bar-wrap {
+  padding: 0 20px 6px;
+}
+
+.pp-bar-track {
+  height: 5px; background: var(--gray-100);
+  border-radius: 20px; overflow: hidden; position: relative;
+}
+
+.pp-bar-fill {
+  height: 100%; border-radius: 20px; width: 0%;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--blue-bright) 100%);
+  transition: width .45s cubic-bezier(.4,0,.2,1), background .25s ease;
+  position: relative;
+}
+
+/* Shimmer overlay */
+.pp-bar-fill::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
+  animation: barShimmer 1.6s linear infinite;
+}
+.progress-panel[data-state="success"] .pp-bar-fill::after,
+.progress-panel[data-state="error"]   .pp-bar-fill::after { display: none; }
+
+@keyframes barShimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%);  }
+}
+
+/* state colours for the bar */
+.progress-panel[data-state="success"] .pp-bar-fill { background: linear-gradient(90deg, var(--teal), #12b08b); }
+.progress-panel[data-state="error"]   .pp-bar-fill { background: linear-gradient(90deg, var(--red), #dc2626); }
+
+/* ── Phase stepper ── */
+.pp-steps {
+  display: flex; align-items: flex-start; gap: 0;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--gray-100);
+  position: relative;
+}
+
+/* Connecting line behind steps */
+.pp-steps::before {
+  content: '';
+  position: absolute;
+  top: 28px; /* vertically centred on step dots */
+  left: calc(20px + 12px); /* left-padding + half dot */
+  right: calc(20px + 12px);
+  height: 2px;
+  background: var(--gray-200);
+  z-index: 0;
+}
+
+.pp-step {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 7px; position: relative; z-index: 1;
+}
+
+.pp-step-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: var(--gray-400);
+  transition: border-color .25s ease, background .25s ease, color .25s ease, box-shadow .25s ease;
+}
+
+.pp-step-label {
+  font-size: 10px; font-weight: 500;
+  color: var(--gray-400); text-align: center; line-height: 1.3;
+  transition: color .25s ease;
+}
+
+/* Active step: pulsing ring */
+.pp-step.is-active .pp-step-dot {
+  border-color: var(--blue-bright);
+  background: var(--blue-pale);
+  color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(37,137,232,.15);
+  animation: stepPulse 1.4s ease infinite;
+}
+.pp-step.is-active .pp-step-label { color: var(--blue); font-weight: 600; }
+
+@keyframes stepPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(37,137,232,.15); }
+  50%       { box-shadow: 0 0 0 7px rgba(37,137,232,.06); }
+}
+
+/* Done step */
+.pp-step.is-done .pp-step-dot {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #fff;
+}
+.pp-step.is-done .pp-step-label { color: var(--teal); }
+
+/* Error step */
+.pp-step.is-error .pp-step-dot {
+  border-color: var(--red); background: var(--red); color: #fff;
+}
+.pp-step.is-error .pp-step-label { color: var(--red); }
+
+/* connecting progress line (teal overlay on top of gray) */
+.pp-step-line {
+  position: absolute; top: 11px; /* half of 24px dot */
+  left: 50%; right: -50%;
+  height: 2px;
+  background: var(--teal);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  z-index: 0;
+}
+.pp-step.is-done .pp-step-line { transform: scaleX(1); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1100px) { .import-grid { grid-template-columns: 1fr; } }
+@media (max-width: 820px) {
+  :root { --sidebar-w: 52px; }
+  .brand-text, .nav-item span, .sidebar-section-label,
+  .status-badge span { display: none; }
+  .nav-item { padding: 8px; justify-content: center; }
+  .sidebar-brand { justify-content: center; padding: 14px 8px; }
+  .pp-steps { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'KTRN_Logo.jpg' %}" alt="KTRN Logo" class="brand-logo">
+      <div class="brand-text">
+        <h1>HBB Manager</h1>
+        <p>Cell Management System</p>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">Main</div>
+
+    <a href="/hbb/" class="nav-item">
+      <i class="fas fa-home"></i><span>Dashboard</span>
+    </a>
+    <a href="/hbb/import-data/" class="nav-item active">
+      <i class="fas fa-file-import"></i><span>Import Data</span>
+    </a>
+    <a href="/hbb/coordinates/" class="nav-item">
+      <i class="fas fa-map-marker-alt"></i><span>Coordinates</span>
+    </a>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Quick Actions</div>
+
+    <div class="nav-item" onclick="window.open('/hbb/import-data/','_blank')">
+      <i class="fas fa-rocket"></i><span>Quick Import</span>
+    </div>
+    <div class="nav-item" onclick="window.open('/hbb/coordinates/','_blank')">
+      <i class="fas fa-search-location"></i><span>Find Customer</span>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="status-badge">
+        <div class="pulse-dot"></div>
+        <span>Full control · KTRN</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <div class="main">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Import Data Management</h2>
+        <p>Update customer coordinates and cell assignments from external data sources</p>
+      </div>
+      <div class="topbar-right">
+        <div class="spinner" id="spinnerGlobal"></div>
+        <button class="btn" onclick="location.href='/hbb/'">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <div class="toast-stack" id="toastStack"></div>
+
+      <!-- IMPORT CARDS -->
+      <div class="import-grid">
+
+        <div class="import-card" onclick="showCsvImport()">
+          <div class="import-icon icon-csv"><i class="fas fa-file-csv"></i></div>
+          <div class="import-content">
+            <div class="import-title">CSV Import</div>
+            <div class="import-desc">Import customer coordinates from CSV files. Update location data for existing customers in the database.</div>
+            <ul class="import-features">
+              <li><i class="fas fa-check"></i> Customer GPS coordinates</li>
+              <li><i class="fas fa-check"></i> Location and region updates</li>
+              <li><i class="fas fa-check"></i> Bulk coordinate imports</li>
+            </ul>
+            <div class="import-action">Start CSV Import <i class="fas fa-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <div class="import-card" onclick="showExmlImport()">
+          <div class="import-icon icon-exml"><i class="fas fa-code"></i></div>
+          <div class="import-content">
+            <div class="import-title">EXML Import</div>
+            <div class="import-desc">Import customer cell assignments from PCRF EXML files. Update cell tower assignments for subscribers.</div>
+            <ul class="import-features">
+              <li><i class="fas fa-check"></i> PCRF cell assignments</li>
+              <li><i class="fas fa-check"></i> Customer cell updates</li>
+              <li><i class="fas fa-check"></i> EXML format processing</li>
+            </ul>
+            <div class="import-action">Start EXML Import <i class="fas fa-arrow-right"></i></div>
+          </div>
+        </div>
+
+      </div><!-- /import-grid -->
+
+      <!-- ══ CSV IMPORT SECTION ══ -->
+      <div id="csvImportSection" style="display:none;">
+
+        <div class="upload-zone" id="csvUploadArea"
+          onclick="document.getElementById('csvFileSelector').click()"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)">
+          <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <h3><i class="fas fa-map-marker-alt"></i> Import Customer Coordinates</h3>
+          <p>Upload a CSV file containing customer MSISDN, latitude, longitude, and location data to update customer coordinates in the database.</p>
+          <div style="display:flex;gap:12px;justify-content:center;align-items:center;">
+            <button class="btn btn-success" onclick="event.stopPropagation();document.getElementById('csvFileSelector').click()">
+              <i class="fas fa-upload"></i> Browse CSV file
+            </button>
+            <a href="/download-csv-template/" class="btn" style="color:var(--blue);" onclick="event.stopPropagation()">
+              <i class="fas fa-download"></i> Download Template
+            </a>
+          </div>
+          <input type="file" id="csvFileSelector" accept=".csv" style="display:none" onchange="handleCsvFileChange(event)">
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             PROFESSIONAL PROGRESS PANEL
+             ═══════════════════════════════════════════ -->
+        <div class="progress-panel" id="csvProgressPanel" data-state="running">
+
+          <!-- Header: ring + text + elapsed -->
+          <div class="pp-header">
+            <div class="pp-ring">
+              <svg viewBox="0 0 42 42">
+                <circle class="ring-track" cx="21" cy="21" r="18"/>
+                <circle class="ring-fill"  cx="21" cy="21" r="18" id="csvRingFill"/>
+              </svg>
+              <div class="pp-ring-pct"  id="csvRingPct">0%</div>
+              <div class="pp-ring-icon" id="csvRingIcon"></div>
+            </div>
+            <div class="pp-text">
+              <div class="pp-phase"  id="csvPhaseLabel">Initialising…</div>
+              <div class="pp-detail" id="csvDetailLabel">Preparing upload</div>
+            </div>
+            <div class="pp-elapsed" id="csvElapsed">0:00</div>
+          </div>
+
+          <!-- Thin linear bar -->
+          <div class="pp-bar-wrap">
+            <div class="pp-bar-track">
+              <div class="pp-bar-fill" id="csvBarFill"></div>
+            </div>
+          </div>
+
+          <!-- Step indicators -->
+          <div class="pp-steps" id="csvSteps">
+            <!-- steps injected by JS -->
+          </div>
+
+        </div><!-- /progress-panel -->
+
+        <div class="results-section" id="csvResults">
+          <div class="results-header">
+            <div class="results-title">
+              <i class="fas fa-check-circle" style="color:var(--teal);"></i>
+              CSV Import Results
+            </div>
+            <button class="btn" onclick="clearCsvResults()">
+              <i class="fas fa-times"></i> Clear
+            </button>
+          </div>
+          <div class="results-content" id="csvResultsContent"></div>
+        </div>
+
+      </div><!-- /csvImportSection -->
+
+      <!-- ══ EXML IMPORT SECTION ══ -->
+      <div id="exmlImportSection" style="display:none;">
+
+        <div class="upload-zone" id="exmlUploadArea"
+          onclick="document.getElementById('exmlFileSelector').click()"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)">
+          <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <h3><i class="fas fa-signal"></i> Import Customer Cells from PCRF</h3>
+          <p>Upload an EXML file from PCRF containing customer cell assignments to update the custom3 field in customer coordinates.</p>
+          <button class="btn btn-success" onclick="event.stopPropagation();document.getElementById('exmlFileSelector').click()">
+            <i class="fas fa-upload"></i> Browse EXML file
+          </button>
+          <input type="file" id="exmlFileSelector" accept=".exml,.xml" style="display:none" onchange="handleExmlFileChange(event)">
+        </div>
+
+        <div class="results-section" id="exmlResults">
+          <div class="results-header">
+            <div class="results-title">
+              <i class="fas fa-check-circle" style="color:var(--teal);"></i>
+              EXML Import Results
+            </div>
+            <button class="btn" onclick="clearExmlResults()">
+              <i class="fas fa-times"></i> Clear
+            </button>
+          </div>
+          <div class="results-content" id="exmlResultsContent"></div>
+        </div>
+
+      </div><!-- /exmlImportSection -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════════════════════ -->
+<script>
+/* ── DOM refs ── */
+const toastStack       = document.getElementById('toastStack');
+const spinnerGlobal    = document.getElementById('spinnerGlobal');
+const csvImportSection = document.getElementById('csvImportSection');
+const exmlImportSection= document.getElementById('exmlImportSection');
+const csvResults       = document.getElementById('csvResults');
+const exmlResults      = document.getElementById('exmlResults');
+
+/* ── CSRF ── */
+function getCsrf() {
+  let v = null;
+  if (document.cookie) {
+    document.cookie.split(';').forEach(c => {
+      const t = c.trim();
+      if (t.startsWith('csrftoken=')) v = decodeURIComponent(t.slice(10));
+    });
+  }
+  return v;
+}
+
+/* ── TOAST ── */
+function showToast(msg, type = 'success', duration = 3200) {
+  const icons = { success:'fa-check-circle', error:'fa-exclamation-triangle', info:'fa-info-circle' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${msg}`;
+  toastStack.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(20px)';
+    t.style.transition = '.2s ease';
+    setTimeout(() => t.remove(), 220);
+  }, duration);
+}
+
+/* ── LOADING ── */
+function setLoading(on) { spinnerGlobal.style.display = on ? 'block' : 'none'; }
+
+/* ════════════════════════════════════════════════════════
+   PROFESSIONAL PROGRESS PANEL ENGINE
+   ════════════════════════════════════════════════════════ */
+
+const CSV_STEPS = [
+  { id: 'validate', label: 'Validate',  icon: 'fa-file-check' },
+  { id: 'upload',   label: 'Upload',    icon: 'fa-upload'     },
+  { id: 'parse',    label: 'Parse',     icon: 'fa-cogs'       },
+  { id: 'save',     label: 'Save',      icon: 'fa-database'   },
+  { id: 'done',     label: 'Complete',  icon: 'fa-check'      },
+];
+
+/* Phase → { startPct, endPct, step, label, detail } */
+const CSV_PHASES = {
+  validate: { startPct: 0,  endPct: 10, stepId: 'validate', label: 'Validating file',        detail: msg => msg },
+  upload:   { startPct: 10, endPct: 40, stepId: 'upload',   label: 'Uploading to server',    detail: msg => msg },
+  parse:    { startPct: 40, endPct: 70, stepId: 'parse',    label: 'Parsing CSV data',       detail: msg => msg },
+  save:     { startPct: 70, endPct: 90, stepId: 'save',     label: 'Updating database',      detail: msg => msg },
+  done:     { startPct: 90, endPct:100, stepId: 'done',     label: 'Import complete',        detail: msg => msg },
+  error:    { startPct:null,endPct:null,stepId: null,        label: 'Import failed',          detail: msg => msg },
+};
+
+/* State */
+let _progressPanel = null;
+let _elapsedTimer  = null;
+let _startTime     = 0;
+let _currentPct    = 0;
+
+/* ── Build step dots ── */
+function buildSteps(panelId, steps) {
+  const container = document.getElementById(panelId + 'Steps');
+  container.innerHTML = '';
+  steps.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'pp-step';
+    el.id = panelId + '_step_' + s.id;
+    el.innerHTML = `
+      <div class="pp-step-dot"><i class="fas ${s.icon}"></i></div>
+      <div class="pp-step-label">${s.label}</div>
+      ${i < steps.length - 1 ? '<div class="pp-step-line"></div>' : ''}
+    `;
+    container.appendChild(el);
+  });
+}
+
+/* ── Ring fill (SVG stroke-dashoffset) ── */
+function setRingPct(panelId, pct) {
+  const CIRCUMFERENCE = 113; /* 2π × 18 */
+  const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+  const ring = document.getElementById(panelId + 'RingFill');
+  const pctEl = document.getElementById(panelId + 'RingPct');
+  if (ring) ring.style.strokeDashoffset = offset;
+  if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+}
+
+/* ── Bar fill ── */
+function setBarPct(panelId, pct) {
+  const bar = document.getElementById(panelId + 'BarFill');
+  if (bar) bar.style.width = pct + '%';
+}
+
+/* ── Update step states ── */
+function setActiveStep(panelId, steps, activeId, isError) {
+  let reachedActive = false;
+  steps.forEach(s => {
+    const el = document.getElementById(panelId + '_step_' + s.id);
+    if (!el) return;
+    el.classList.remove('is-done', 'is-active', 'is-error');
+    if (s.id === activeId) {
+      reachedActive = true;
+      el.classList.add(isError ? 'is-error' : 'is-active');
+    } else if (!reachedActive) {
+      el.classList.add('is-done');
+    }
+  });
+}
+
+/* ── Elapsed clock ── */
+function startElapsed(panelId) {
+  _startTime = Date.now();
+  clearInterval(_elapsedTimer);
+  _elapsedTimer = setInterval(() => {
+    const secs = Math.floor((Date.now() - _startTime) / 1000);
+    const m = Math.floor(secs / 60);
+    const s = String(secs % 60).padStart(2, '0');
+    const el = document.getElementById(panelId + 'Elapsed');
+    if (el) el.textContent = `${m}:${s}`;
+  }, 500);
+}
+
+function stopElapsed() { clearInterval(_elapsedTimer); }
+
+/* ── Main public API ── */
+function showProgressPanel(panelId) {
+  const panel = document.getElementById(panelId + 'ProgressPanel');
+  if (!panel) return;
+  _progressPanel = panelId;
+  _currentPct = 0;
+  panel.style.display = 'block';
+  panel.dataset.state = 'running';
+
+  // Icon: clear
+  const icon = document.getElementById(panelId + 'RingIcon');
+  if (icon) icon.innerHTML = '';
+
+  setRingPct(panelId, 0);
+  setBarPct(panelId, 0);
+  startElapsed(panelId);
+}
+
+function updateProgressPanel(panelId, phase, detail) {
+  const cfg = CSV_PHASES[phase];
+  if (!cfg || cfg.startPct === null) return;
+
+  const panel = document.getElementById(panelId + 'ProgressPanel');
+  const phaseEl  = document.getElementById(panelId + 'PhaseLabel');
+  const detailEl = document.getElementById(panelId + 'DetailLabel');
+  if (!panel) return;
+
+  if (phaseEl)  phaseEl.textContent  = cfg.label;
+  if (detailEl) detailEl.textContent = cfg.detail(detail || '');
+
+  // Animate gradually through the phase range
+  animatePhaseProgress(panelId, cfg.startPct, cfg.endPct, 1500);
+
+  if (cfg.stepId) {
+    setActiveStep(panelId, CSV_STEPS, cfg.stepId, phase === 'error');
+  }
+}
+
+function finishProgressPanel(panelId, success, summaryText) {
+  const panel = document.getElementById(panelId + 'ProgressPanel');
+  if (!panel) return;
+
+  stopElapsed();
+  panel.dataset.state = success ? 'success' : 'error';
+
+  animatePct(panelId, _currentPct, 100, 400);
+
+  const phaseEl  = document.getElementById(panelId + 'PhaseLabel');
+  const detailEl = document.getElementById(panelId + 'DetailLabel');
+  const iconEl   = document.getElementById(panelId + 'RingIcon');
+
+  if (phaseEl)  phaseEl.textContent  = success ? 'Import complete' : 'Import failed';
+  if (detailEl) detailEl.textContent = summaryText || '';
+  if (iconEl)   iconEl.innerHTML     = success
+    ? '<i class="fas fa-check"></i>'
+    : '<i class="fas fa-times"></i>';
+
+  /* Mark all steps done / error */
+  if (success) {
+    CSV_STEPS.forEach(s => {
+      const el = document.getElementById(panelId + '_step_' + s.id);
+      if (el) { el.classList.remove('is-active','is-error'); el.classList.add('is-done'); }
+    });
+  }
+
+  /* Auto-dismiss after 4 s */
+  setTimeout(() => hideProgressPanel(panelId), 4000);
+}
+
+function hideProgressPanel(panelId) {
+  const panel = document.getElementById(panelId + 'ProgressPanel');
+  if (panel) {
+    panel.style.transition = 'opacity .3s ease';
+    panel.style.opacity = '0';
+    setTimeout(() => { panel.style.display = 'none'; panel.style.opacity = '1'; }, 320);
+  }
+  stopElapsed();
+}
+
+/* ── Smooth phase progress animation ── */
+function animatePhaseProgress(panelId, startPct, endPct, duration) {
+  const startTime = performance.now();
+  
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Smooth easing function
+    const eased = progress < 0.5 
+      ? 2 * progress * progress 
+      : -1 + (4 - 2 * progress) * progress;
+    
+    const currentPct = startPct + (endPct - startPct) * eased;
+    
+    setRingPct(panelId, currentPct);
+    setBarPct(panelId, currentPct);
+    _currentPct = currentPct;
+    
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    }
+  }
+  
+  requestAnimationFrame(step);
+}
+
+/* ── Legacy smooth pct animation ── */
+function animatePct(panelId, from, to, ms) {
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min((now - start) / ms, 1);
+    const eased = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+    const current = from + (to - from) * eased;
+    setRingPct(panelId, current);
+    setBarPct(panelId, current);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+
+/* ─── SECTION SWITCHING ─── */
+function showCsvImport() {
+  csvImportSection.style.display = 'block';
+  exmlImportSection.style.display = 'none';
+  buildSteps('csv', CSV_STEPS);
+  showToast('CSV import mode activated', 'info', 2000);
+}
+
+function showExmlImport() {
+  csvImportSection.style.display = 'none';
+  exmlImportSection.style.display = 'block';
+  showToast('EXML import mode activated', 'info', 2000);
+}
+
+/* ─── DRAG & DROP ─── */
+function handleDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('dragover');
+}
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if (e.dataTransfer.files.length) {
+    if (e.currentTarget.id === 'csvUploadArea')  processCsvFile(e.dataTransfer.files[0]);
+    if (e.currentTarget.id === 'exmlUploadArea') processExmlFile(e.dataTransfer.files[0]);
+  }
+}
+
+/* ─── CSV IMPORT ─── */
+function handleCsvFileChange(e) {
+  if (e.target.files.length) processCsvFile(e.target.files[0]);
+}
+
+async function processCsvFile(file) {
+  if (!file) return;
+  
+  /* -- Phase 1: Validate -- */
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    showToast('Please select a CSV file', 'error');
+    return;
+  }
+  
+  // File size validation
+  const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+  if (file.size > 50 * 1024 * 1024) { // 50MB limit
+    showToast('File size exceeds 50MB limit', 'error');
+    return;
+  }
+
+  const fileSize = (file.size / 1024).toFixed(1);
+  showProgressPanel('csv');
+  updateProgressPanel('csv', 'validate', `${file.name} · ${fileSize} KB`);
+
+  setLoading(true);
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  // Add file metadata for better backend handling
+  formData.append('file_name', file.name);
+  formData.append('file_size', file.size);
+  
+  // Check if this is a dry run or actual import
+  const dryRun = !confirm('⚠️ IMPORTANT: This will DELETE all existing data and insert new CSV data.\n\nClick OK to proceed with import, or Cancel to analyze only.');
+  formData.append('dry_run', dryRun ? 'true' : 'false');
+
+  try {
+    /* -- Phase 2: Upload -- */
+    await delay(800); /* let validation phase complete */
+    updateProgressPanel('csv', 'upload', 'Sending data to server…');
+
+    // Start upload with realistic timing
+    const uploadStart = Date.now();
+    const uploadDuration = Math.max(1500, file.size / 50000); // Scale with file size
+    
+    // Retry logic for network issues
+    let retryCount = 0;
+    const maxRetries = 3;
+    let res;
+    
+    while (retryCount < maxRetries) {
+      try {
+        res = await fetch('/hbb/import-csv/', {
+          method: 'POST',
+          body: formData,
+          headers: { 'X-CSRFToken': getCsrf() },
+          signal: AbortSignal.timeout(30000) // 30 second timeout
+        });
+        break; // Success, exit retry loop
+      } catch (err) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          throw new Error(`Upload failed after ${maxRetries} attempts: ${err.message}`);
+        }
+        console.log(`Upload attempt ${retryCount} failed, retrying...`);
+        await delay(1000 * retryCount); // Exponential backoff
+      }
+    }
+
+    // Ensure upload phase has time to animate
+    const uploadElapsed = Date.now() - uploadStart;
+    if (uploadElapsed < uploadDuration) {
+      await delay(uploadDuration - uploadElapsed);
+    }
+
+    /* -- Phase 3: Parse response -- */
+    updateProgressPanel('csv', 'parse', 'Analysing CSV structure and records…');
+
+    if (!res.ok) throw new Error(`Server error ${res.status}: ${res.statusText}`);
+
+    const data = await res.json();
+
+    /* -- Phase 4: Save / DB -- */
+    if (data.success) {
+      if (data.dry_run) {
+        // Dry run results
+        const actualProgress = (data.processed_rows / data.total_rows) * 90;
+        updateProgressPanel('csv', 'save', `Analysis complete: ${data.records_found} found, ${data.records_not_found} not found`);
+        animatePct('csv', _currentPct, actualProgress, 600);
+        
+        await delay(200);
+        
+        const timeSeconds = (data.processing_time_ms / 1000).toFixed(1);
+        const summary = `Analysis Complete: ${data.records_found} found · ${data.records_not_found} not found · ${data.processed_rows} processed · ${timeSeconds}s`;
+        finishProgressPanel('csv', true, summary);
+        showCsvResults(data);
+        
+        // Show import option
+        if (confirm(`Analysis complete!\n\nFound: ${data.records_found}\nNot found: ${data.records_not_found}\n\nWould you like to proceed with the import?`)) {
+          // Retry with actual import
+          processCsvFile(file); // This will show the confirmation again
+          return;
+        }
+        
+        showToast(`Analysis complete: ${data.records_found} found, ${data.records_not_found} not found (${timeSeconds}s)`, 'info', 5000);
+      } else {
+        // Actual import results
+        const actualProgress = 90;
+        updateProgressPanel('csv', 'save', `Truncated ${data.truncated_count} records, inserted ${data.inserted_count} records`);
+        animatePct('csv', _currentPct, actualProgress, 600);
+        
+        await delay(200);
+        
+        const timeSeconds = (data.processing_time_ms / 1000).toFixed(1);
+        const summary = `Import Complete: Truncated ${data.truncated_count} · Inserted ${data.inserted_count} · ${timeSeconds}s`;
+        finishProgressPanel('csv', true, summary);
+        showCsvResults(data);
+        showToast(`Import complete: ${data.inserted_count} records inserted (${timeSeconds}s)`, 'success', 5000);
+      }
+    } else {
+      throw new Error(data.error || 'Unknown server error');
+    }
+
+  } catch (err) {
+    console.error('CSV Upload Error:', err);
+    updateProgressPanel('csv', 'error', err.message);
+    finishProgressPanel('csv', false, err.message);
+    showToast(`Import failed: ${err.message}`, 'error', 5000);
+  } finally {
+    setLoading(false);
+    /* Reset file input so the same file can be re-selected */
+    document.getElementById('csvFileSelector').value = '';
+  }
+}
+
+/* tiny helper to keep async flow readable */
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showCsvResults(data) {
+  const content = document.getElementById('csvResultsContent');
+  let html = `${data.message}\n\n`;
+  
+  // Handle different response formats (dry run vs actual import)
+  if (data.dry_run) {
+    // Dry run results
+    html += `✓  Records found in database : ${data.records_found || 0}\n`;
+    html += `✗  Records not found         : ${data.records_not_found || 0}\n`;
+    html += `📊  Records with coordinates  : ${data.records_with_data || 0}\n`;
+    html += `⭕  Empty rows skipped        : ${data.records_empty || 0}\n`;
+  } else {
+    // Actual import results
+    html += `🗑️  Records truncated       : ${data.truncated_count || 0}\n`;
+    html += `✓  Records inserted        : ${data.inserted_count || 0}\n`;
+    html += `✗  Insert errors           : ${(data.errors && data.errors.length) || 0}\n`;
+  }
+
+  if (data.errors && data.errors.length > 0) {
+    html += '\n⚠️  Details:\n';
+    data.errors.slice(0, 20).forEach(e => { html += `   - ${e}\n`; });
+    if (data.errors.length > 20) html += `   … and ${data.errors.length - 20} more\n`;
+  }
+
+  content.textContent = html;
+  csvResults.style.display = 'block';
+}
+
+function clearCsvResults() {
+  csvResults.style.display = 'none';
+  document.getElementById('csvFileSelector').value = '';
+}
+
+/* ─── EXML IMPORT ─── */
+function handleExmlFileChange(e) {
+  if (e.target.files.length) processExmlFile(e.target.files[0]);
+}
+
+async function processExmlFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'exml' && ext !== 'xml') {
+    showToast('Please select an EXML or XML file', 'error');
+    return;
+  }
+
+  setLoading(true);
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/hbb/import-exml/', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-CSRFToken': getCsrf() }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showExmlResults(data.message, data.records_processed, data.errors);
+      showToast(`EXML import complete: ${data.records_processed} records processed`, 'success');
+    } else {
+      showToast(data.error || 'EXML import failed', 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  } finally {
+    setLoading(false);
+  }
+}
+
+function showExmlResults(message, recordsProcessed, errors = []) {
+  const content = document.getElementById('exmlResultsContent');
+  let html = `${message}\n\nRecords processed: ${recordsProcessed}\n`;
+  if (errors && errors.length > 0) {
+    html += '\nErrors:\n';
+    errors.forEach(e => { html += `- ${e}\n`; });
+  }
+  content.textContent = html;
+  exmlResults.style.display = 'block';
+}
+
+function clearExmlResults() {
+  exmlResults.style.display = 'none';
+  document.getElementById('exmlFileSelector').value = '';
+}
+</script>
+</body>
+</html>
